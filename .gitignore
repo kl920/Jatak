@@ -1,0 +1,20 @@
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.log
+backend/uvicorn*.log
+
+# Data files (large, not for repo)
+backend/data/*.parquet
+backend/data/*.duckdb
+backend/data/*.duckdb.wal
+data/
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# OS
+.DS_Store
+Thumbs.db

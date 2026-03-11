@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Trophy, Flame, Lightbulb, Calendar, ChevronRight,
-  Copy, Check, TrendingUp, Star, Zap, ShoppingBag, Search, Tag, Store
+  Trophy, Calendar, ChevronRight,
+  Copy, Check, TrendingUp, Star, Zap, ShoppingBag, Search, Tag, Store,
+  Sparkles, ArrowRight,
 } from 'lucide-react'
 import {
   fetchTopTitles, fetchSeasonal, fetchInspirationTips,
@@ -17,7 +18,11 @@ const MONTH_NAMES = [
   'Juli', 'August', 'September', 'Oktober', 'November', 'December',
 ]
 
-function CopyBtn({ text }: { text: string }) {
+function navigateToAI() {
+  window.location.hash = '/ai-jatak'
+}
+
+function CopyBtn({ text, showLabel = false }: { text: string; showLabel?: boolean }) {
   const [copied, setCopied] = useState(false)
   const copy = () => {
     navigator.clipboard.writeText(text)
@@ -27,12 +32,16 @@ function CopyBtn({ text }: { text: string }) {
   return (
     <button
       onClick={copy}
-      title="Kopiér"
-      className="shrink-0 p-1.5 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-700 transition-colors"
+      title="Kopiér titel"
+      className={`shrink-0 flex items-center gap-1.5 rounded-lg transition-colors text-xs font-medium
+        ${copied
+          ? 'text-green-400 bg-green-950/40 border border-green-500/30 px-2.5 py-1.5'
+          : 'text-slate-400 hover:text-slate-100 hover:bg-slate-700 border border-slate-700/60 px-2.5 py-1.5'
+        }`}
     >
       {copied
-        ? <Check size={13} className="text-green-400" />
-        : <Copy size={13} />}
+        ? <><Check size={12} />{showLabel && 'Kopieret'}</>
+        : <><Copy size={12} />{showLabel && 'Kopiér'}</>}
     </button>
   )
 }
@@ -41,133 +50,81 @@ function SectionHeader({ icon: Icon, title, subtitle, color = 'text-blue-400' }:
   icon: React.ElementType; title: string; subtitle?: string; color?: string
 }) {
   return (
-    <div className="flex items-center gap-3 mb-4">
-      <div className={`p-2 rounded-xl bg-slate-800 border border-slate-700`}>
-        <Icon size={18} className={color} />
+    <div className="flex items-center gap-3 mb-5">
+      <div className="p-2 rounded-xl bg-slate-800 border border-slate-700/80">
+        <Icon size={17} className={color} />
       </div>
       <div>
         <h2 className="text-base font-bold text-slate-100">{title}</h2>
-        {subtitle && <p className="text-xs text-slate-400">{subtitle}</p>}
+        {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
       </div>
     </div>
   )
 }
 
-// ─── Seasonal card ───────────────────────────────────────────────────────────
+// ─── Inline AI CTA strip ─────────────────────────────────────────────────────
 
-function SeasonalCard({ item, idx }: { item: SeasonalCategory; idx: number }) {
-  const medals = ['🥇', '🥈', '🥉']
+function AICTAStrip({ message }: { message: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 bg-slate-800/60 rounded-2xl px-5 py-4 border border-slate-700/40 hover:border-slate-600/60 transition-colors">
-      <div className="flex items-center gap-3 min-w-0">
-        <span className="text-xl shrink-0">{medals[idx] ?? `#${idx + 1}`}</span>
-        <div className="min-w-0">
-          <p className="text-base font-bold text-slate-100 truncate">{item.category}</p>
-          <p className="text-xs text-slate-400 mt-0.5">
-            {item.unique_stores} butikker brugte denne kategori · gns. pris {item.avg_price.toFixed(0)} kr
-          </p>
-          <p className="text-xs text-blue-400/80 mt-0.5">
-            {item.pct_of_total.toFixed(0)}% af alle opslag denne måned er i denne kategori
-          </p>
-        </div>
-      </div>
-      <div className="text-right shrink-0 ml-2">
-        <p className="text-2xl font-bold text-emerald-400">{item.avg_jatak.toFixed(1)}</p>
-        <p className="text-xs text-slate-400 leading-tight">kunder skriver</p>
-        <p className="text-xs text-slate-400 leading-tight">Ja Tak i snit</p>
-      </div>
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-violet-500/20 bg-violet-950/20 px-5 py-3.5">
+      <p className="text-sm text-slate-300">{message}</p>
+      <button
+        onClick={navigateToAI}
+        className="shrink-0 flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-colors"
+      >
+        Lad AI skrive opslaget <ArrowRight size={13} />
+      </button>
     </div>
   )
 }
 
-// ─── Top title row ───────────────────────────────────────────────────────────
+// ─── Insight card ─────────────────────────────────────────────────────────────
 
-function TitleRow({ t }: { t: TopTitle }) {
-  const rankColor = t.rank === 1
-    ? 'text-yellow-400 font-bold'
-    : t.rank === 2
-      ? 'text-slate-300 font-semibold'
-      : t.rank === 3
-        ? 'text-amber-600 font-semibold'
-        : 'text-slate-500'
-
-  return (
-    <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl px-5 py-4 border border-slate-700/30 hover:border-slate-600/50 transition-colors group">
-      <span className={`text-base w-6 shrink-0 mt-0.5 ${rankColor}`}>{t.rank}</span>
-      <div className="flex-1 min-w-0">
-        <p className="text-base text-slate-100 font-semibold leading-snug break-words">{t.title}</p>
-        {t.sample_description && (
-          <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-1">{t.sample_description}</p>
-        )}
-        <div className="flex items-center gap-2 mt-2 flex-wrap">
-          <span className="inline-flex items-center gap-1 bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 text-xs font-bold px-2.5 py-1 rounded-lg">
-            ⭐ {Math.round(t.avg_jatak)} kunder skrev Ja Tak i snit
-          </span>
-          {t.avg_price > 0 && (
-            <span className="text-xs text-slate-400 bg-slate-700/50 px-2 py-1 rounded-lg">{t.avg_price.toFixed(0)} kr</span>
-          )}
-          {t.use_count > 1 && (
-            <span className="text-xs text-blue-300/80 bg-blue-900/30 border border-blue-500/20 px-2 py-1 rounded-lg">brugt af {t.use_count} butikker</span>
-          )}
-          {t.has_emoji && (
-            <span className="text-xs text-violet-300/80 bg-violet-900/20 border border-violet-500/20 px-2 py-1 rounded-lg">🎯 har emojis</span>
-          )}
-        </div>
-      </div>
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity pt-0.5">
-        <CopyBtn text={t.title} />
-      </div>
-    </div>
-  )
-}
-
-// ─── Tips panel ─────────────────────────────────────────────────────────────
-
-function TipCard({ icon: Icon, label, value, sub, color }: {
-  icon: React.ElementType; label: string; value: string; sub: string; color: string
+function InsightCard({ icon: Icon, label, value, note, accent }: {
+  icon: React.ElementType; label: string; value: string; note: string; accent: string
 }) {
   return (
-    <div className={`rounded-2xl border bg-slate-900/60 p-4 flex flex-col gap-2 ${color}`}>
+    <div className={`rounded-2xl border bg-slate-900/70 p-5 flex flex-col gap-3 ${accent}`}>
       <div className="flex items-center gap-2">
-        <Icon size={16} className="shrink-0" />
-        <span className="text-xs font-semibold text-slate-300 uppercase tracking-wide">{label}</span>
+        <Icon size={15} className="text-slate-400 shrink-0" />
+        <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-slate-100">{value}</p>
-      <p className="text-xs text-slate-400 leading-relaxed">{sub}</p>
+      <p className="text-3xl font-bold text-slate-100 leading-none">{value}</p>
+      <p className="text-xs text-slate-500 leading-snug">{note}</p>
     </div>
   )
 }
 
-function TipsSection({ tips }: { tips: InspirationTips }) {
+function InsightsGrid({ tips }: { tips: InspirationTips }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <TipCard
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      <InsightCard
         icon={Zap}
-        label="Emojis"
+        label="Emojis virker"
         value={`+${tips.emoji.delta_pct.toFixed(0)}%`}
-        sub={`Tilbud med emojis får ${tips.emoji.with.toFixed(1)} ja tak mod ${tips.emoji.without.toFixed(1)} uden`}
-        color="border-violet-500/30"
+        note="Opslag med emojis får typisk flere Ja Tak."
+        accent="border-violet-500/25"
       />
-      <TipCard
+      <InsightCard
         icon={TrendingUp}
-        label="Vis prisen"
-        value={`+${tips.price_shown.delta_pct.toFixed(0)}%`}
-        sub={`Med pris: ${tips.price_shown.with.toFixed(1)} ja tak · Uden pris: ${tips.price_shown.without.toFixed(1)} ja tak`}
-        color="border-blue-500/30"
+        label="Tidspunkt virker"
+        value={`+${tips.publish_time.delta_pct.toFixed(0)}%`}
+        note="Opslag kl. 6–9 om morgenen får flest Ja Tak."
+        accent="border-blue-500/25"
       />
-      <TipCard
+      <InsightCard
         icon={ShoppingBag}
-        label="Billigste varer"
-        value={`${tips.price_bucket.under_50.toFixed(1)} ja tak`}
-        sub={`Varer under 50 kr klarer sig bedst vs ${tips.price_bucket['50_to_100'].toFixed(1)} (50-100 kr) og ${tips.price_bucket.over_100.toFixed(1)} (100+ kr)`}
-        color="border-emerald-500/30"
+        label="Billige varer sælger"
+        value={`${tips.price_bucket.under_50.toFixed(0)} Ja Tak`}
+        note="Varer under 50 kr får typisk flest Ja Tak."
+        accent="border-emerald-500/25"
       />
-      <TipCard
+      <InsightCard
         icon={Star}
-        label="Top kategori"
+        label="Topkategori lige nu"
         value={tips.top_categories[0]?.category ?? '–'}
-        sub={`${tips.top_categories.map(c => `${c.category} (${c.avg_jatak.toFixed(1)})`).join(' · ')}`}
-        color="border-amber-500/30"
+        note="Denne kategori performer stærkt denne måned."
+        accent="border-amber-500/25"
       />
     </div>
   )
@@ -198,57 +155,36 @@ function MonthPicker({ value, onChange }: { value: number; onChange: (m: number)
   )
 }
 
-// ─── Top Titles Panel ────────────────────────────────────────────────────────
+// ─── Seasonal card ───────────────────────────────────────────────────────────
 
-function TopTitlesPanel({ categories }: { categories: string[] }) {
-  const [selectedCat, setSelectedCat] = useState(categories[0] ?? '')
-
-  const { data: titles = [], isLoading } = useQuery({
-    queryKey: ['top-titles', selectedCat],
-    queryFn: () => fetchTopTitles(selectedCat, 5),
-    enabled: !!selectedCat,
-    staleTime: 300_000,
-  })
-
+function SeasonalCard({ item, idx }: { item: SeasonalCategory; idx: number }) {
+  const isTop3 = idx < 3
+  const medals = ['🥇', '🥈', '🥉']
   return (
-    <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-6">
-      <SectionHeader
-        icon={Trophy}
-        title="Top 5 mest populære titler"
-        subtitle="Titler fra butikker der har fået flest kunder — klik på en titel for at kopiere den direkte"
-        color="text-yellow-400"
-      />
-
-      {/* Category selector */}
-      <div className="flex flex-wrap gap-1.5 mb-5">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCat(cat)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
-              selectedCat === cat
-                ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-700 border border-transparent'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+    <div className={`flex items-center justify-between gap-3 rounded-2xl px-5 py-4 border transition-colors
+      ${isTop3
+        ? 'bg-slate-800/70 border-slate-600/50 hover:border-slate-500/70'
+        : 'bg-slate-900/40 border-slate-700/30 hover:border-slate-600/40'
+      }`}>
+      <div className="flex items-center gap-3 min-w-0">
+        <span className={`shrink-0 ${isTop3 ? 'text-xl' : 'text-sm text-slate-500 w-5 text-center'}`}>
+          {medals[idx] ?? `#${idx + 1}`}
+        </span>
+        <div className="min-w-0">
+          <p className={`font-bold truncate ${isTop3 ? 'text-base text-slate-100' : 'text-sm text-slate-300'}`}>
+            {item.category}
+          </p>
+          <p className="text-xs text-slate-500 mt-0.5">
+            {item.unique_stores} butikker · gns. {item.avg_price.toFixed(0)} kr
+          </p>
+        </div>
       </div>
-
-      {isLoading ? (
-        <div className="space-y-2">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-14 rounded-xl bg-slate-800/60 animate-pulse" />
-          ))}
-        </div>
-      ) : titles.length === 0 ? (
-        <p className="text-sm text-slate-500 py-8 text-center">Ingen data i denne kategori</p>
-      ) : (
-        <div className="space-y-2">
-          {titles.map(t => <TitleRow key={t.rank} t={t} />)}
-        </div>
-      )}
+      <div className="text-right shrink-0">
+        <p className={`font-bold text-emerald-400 ${isTop3 ? 'text-2xl' : 'text-lg'}`}>
+          {item.avg_jatak.toFixed(1)}
+        </p>
+        <p className="text-xs text-slate-500">Ja Tak</p>
+      </div>
     </div>
   )
 }
@@ -269,20 +205,14 @@ function SeasonalPanel() {
     <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-6">
       <SectionHeader
         icon={Calendar}
-        title="Sæsonkategorier"
-        subtitle="Vælg en måned og se hvilke kategorier der historisk får flest kunder til at skrive Ja Tak"
+        title="Kategorier der performer lige nu"
+        subtitle={`Baseret på ${MONTH_NAMES[month]}.`}
         color="text-blue-400"
       />
 
       <div className="mb-5">
         <MonthPicker value={month} onChange={setMonth} />
       </div>
-
-      <p className="text-xs text-slate-500 mb-3 flex items-center gap-1">
-        <Flame size={12} className="text-orange-400" />
-        Topkategorier i <span className="text-slate-300 ml-1 font-semibold">{MONTH_NAMES[month]}</span>
-        <span className="ml-1 text-slate-600">— tal = gns. kunder der skriver Ja Tak per opslag</span>
-      </p>
 
       {isLoading ? (
         <div className="space-y-2">
@@ -299,44 +229,128 @@ function SeasonalPanel() {
   )
 }
 
-// ─── Search Panel ───────────────────────────────────────────────────────────
+// ─── Top title row ───────────────────────────────────────────────────────────
+
+function TitleRow({ t }: { t: TopTitle }) {
+  const rankStyles: Record<number, string> = {
+    1: 'text-yellow-400 font-bold',
+    2: 'text-slate-300 font-semibold',
+    3: 'text-amber-600 font-semibold',
+  }
+  const rankColor = rankStyles[t.rank] ?? 'text-slate-600'
+
+  return (
+    <div className="flex items-center gap-3 bg-slate-800/50 rounded-2xl px-4 py-3.5 border border-slate-700/30 hover:border-slate-600/50 transition-colors group">
+      <span className={`text-sm w-5 shrink-0 ${rankColor}`}>{t.rank}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-slate-100 font-semibold leading-snug">{t.title}</p>
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          <span className="text-xs text-emerald-400 font-semibold">{Math.round(t.avg_jatak)} Ja Tak i snit</span>
+          {t.avg_price > 0 && (
+            <span className="text-xs text-slate-500">{t.avg_price.toFixed(0)} kr</span>
+          )}
+          {t.use_count > 1 && (
+            <span className="text-xs text-slate-500">{t.use_count} butikker</span>
+          )}
+          {t.has_emoji && (
+            <span className="text-xs text-violet-400/70">🎯 emojis</span>
+          )}
+        </div>
+      </div>
+      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+        <CopyBtn text={t.title} showLabel />
+      </div>
+    </div>
+  )
+}
+
+// ─── Top Titles Panel ────────────────────────────────────────────────────────
+
+function TopTitlesPanel({ categories }: { categories: string[] }) {
+  const [selectedCat, setSelectedCat] = useState(categories[0] ?? '')
+
+  const { data: titles = [], isLoading } = useQuery({
+    queryKey: ['top-titles', selectedCat],
+    queryFn: () => fetchTopTitles(selectedCat, 5),
+    enabled: !!selectedCat,
+    staleTime: 300_000,
+  })
+
+  return (
+    <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-6">
+      <SectionHeader
+        icon={Trophy}
+        title="Titler der ofte virker"
+        subtitle="Kopier en titel eller brug den som inspiration."
+        color="text-yellow-400"
+      />
+
+      <div className="flex flex-wrap gap-1.5 mb-5">
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCat(cat)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${
+              selectedCat === cat
+                ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/40'
+                : 'bg-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-700 border border-transparent'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-14 rounded-xl bg-slate-800/60 animate-pulse" />
+          ))}
+        </div>
+      ) : titles.length === 0 ? (
+        <p className="text-sm text-slate-500 py-8 text-center">Ingen data i denne kategori</p>
+      ) : (
+        <div className="space-y-2">
+          {titles.map(t => <TitleRow key={t.rank} t={t} />)}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Search result card ──────────────────────────────────────────────────────
 
 function SearchResultCard({ r }: { r: OfferSearchResult }) {
   const sellPct = r.initial_stock > 0 ? Math.round((r.total_sold / r.initial_stock) * 100) : null
 
   return (
     <div className="rounded-2xl border border-slate-700/40 bg-slate-800/50 px-5 py-4 space-y-2 hover:border-slate-600/60 transition-colors">
-      {/* Title row */}
       <div className="flex items-start justify-between gap-3">
-        <p className="text-base font-bold text-slate-100 leading-snug">{r.title}</p>
-        <span className="shrink-0 inline-flex items-center gap-1 bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 text-xs font-bold px-2.5 py-1 rounded-lg">
-          ⭐ {r.jatak_count} Ja Tak
+        <p className="text-sm font-bold text-slate-100 leading-snug">{r.title}</p>
+        <span className="shrink-0 text-xs font-bold text-emerald-400 bg-emerald-900/30 border border-emerald-500/25 px-2.5 py-1 rounded-lg">
+          {r.jatak_count} Ja Tak
         </span>
       </div>
-
-      {/* Description */}
       {r.description && (
-        <p className="text-sm text-slate-400 leading-relaxed line-clamp-2">{r.description}</p>
+        <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">{r.description}</p>
       )}
-
-      {/* Stats row */}
-      <div className="flex flex-wrap items-center gap-2 pt-1">
+      <div className="flex flex-wrap items-center gap-2 pt-0.5">
         {r.price > 0 && (
-          <span className="text-xs bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-lg font-medium">{r.price.toFixed(0)} kr</span>
+          <span className="text-xs bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-lg">{r.price.toFixed(0)} kr</span>
         )}
         {r.total_sold > 0 && (
-          <span className="text-xs bg-blue-900/30 border border-blue-500/20 text-blue-300 px-2 py-0.5 rounded-lg">
-            {r.total_sold} solgt{sellPct !== null ? ` (${sellPct}% af lager)` : ''}
+          <span className="text-xs bg-blue-900/20 border border-blue-500/20 text-blue-300 px-2 py-0.5 rounded-lg">
+            {r.total_sold} solgt{sellPct !== null ? ` (${sellPct}%)` : ''}
           </span>
         )}
         {r.category && (
-          <span className="inline-flex items-center gap-1 text-xs bg-violet-900/30 border border-violet-500/20 text-violet-300 px-2 py-0.5 rounded-lg">
-            <Tag size={10} />{r.category}
+          <span className="inline-flex items-center gap-1 text-xs bg-violet-900/20 border border-violet-500/20 text-violet-300 px-2 py-0.5 rounded-lg">
+            <Tag size={9} />{r.category}
           </span>
         )}
         {r.store_name && (
-          <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-            <Store size={10} />{r.store_name.split(' ')[0]}
+          <span className="inline-flex items-center gap-1 text-xs text-slate-600">
+            <Store size={9} />{r.store_name.split(' ')[0]}
           </span>
         )}
         {r.created_date && (
@@ -346,6 +360,10 @@ function SearchResultCard({ r }: { r: OfferSearchResult }) {
     </div>
   )
 }
+
+// ─── Search Panel ───────────────────────────────────────────────────────────
+
+const SEARCH_SUGGESTIONS = ['kærnemælk', 'flæskesteg', 'kyllingebryst', 'jordbær', 'ost']
 
 function SearchPanel() {
   const [query, setQuery] = useState('')
@@ -362,74 +380,117 @@ function SearchPanel() {
     <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-6">
       <SectionHeader
         icon={Search}
-        title="Søg i historiske opslag"
-        subtitle="Find hvad der virkede for et produkt — og se top-resultater med Ja Tak, solgte varer og pris"
+        title="Find opslag der virker"
+        subtitle="Søg i 680.000+ tidligere Ja Tak opslag og se hvad andre butikker har solgt."
         color="text-sky-400"
       />
 
-      {/* Input */}
-      <div className="relative mb-4">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+      <div className="relative mb-3">
+        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
         <input
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Eks. Stjerneskud, Gulerødder, Mælk …"
-          className="w-full bg-slate-800 border border-slate-600/60 text-slate-100 placeholder:text-slate-500 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50 transition"
+          placeholder="Prøv fx: kærnemælk, flæskesteg, kyllingebryst"
+          className="w-full bg-slate-800 border border-slate-600/60 text-slate-100 placeholder:text-slate-500 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500/40 focus:border-sky-500/40 transition"
         />
       </div>
 
-      {/* States */}
-      {trimmed.length < 2 && (
-        <p className="text-sm text-slate-500 text-center py-6">Skriv mindst 2 tegn for at søge</p>
+      {!trimmed && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-slate-600">Prøv:</span>
+          {SEARCH_SUGGESTIONS.map(s => (
+            <button
+              key={s}
+              onClick={() => setQuery(s)}
+              className="text-xs text-sky-400/80 hover:text-sky-300 bg-sky-950/30 hover:bg-sky-950/50 border border-sky-500/20 px-2.5 py-1 rounded-lg transition-colors"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
       )}
+
       {trimmed.length >= 2 && isFetching && (
-        <div className="space-y-2">
+        <div className="space-y-2 mt-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="h-20 rounded-2xl bg-slate-800/60 animate-pulse" />
           ))}
         </div>
       )}
       {trimmed.length >= 2 && !isFetching && isError && (
-        <p className="text-sm text-red-400 text-center py-6">Søgningen fejlede — prøv igen</p>
+        <p className="text-sm text-red-400 text-center py-6 mt-3">Søgningen fejlede — prøv igen</p>
       )}
       {trimmed.length >= 2 && !isFetching && !isError && results.length === 0 && (
-        <p className="text-sm text-slate-500 text-center py-6">Ingen opslag fundet for <span className="text-slate-300 font-medium">"{trimmed}"</span></p>
+        <p className="text-sm text-slate-500 text-center py-6 mt-3">Ingen opslag fundet for <span className="text-slate-300 font-medium">"{trimmed}"</span></p>
       )}
       {!isFetching && results.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs text-slate-500 mb-3">Top {results.length} opslag for <span className="text-slate-300 font-semibold">"{trimmed}"</span> — sorteret efter flest Ja Tak</p>
+        <div className="space-y-2 mt-3">
+          <p className="text-xs text-slate-500 mb-2">
+            Top {results.length} for <span className="text-slate-300 font-medium">"{trimmed}"</span> — flest Ja Tak
+          </p>
           {results.map((r, i) => <SearchResultCard key={i} r={r} />)}
+          <div className="pt-2">
+            <AICTAStrip message="Lad AI skrive dit næste opslag" />
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-// ─── Inspiration banner ───────────────────────────────────────────────────────
+// ─── "Det virker ofte" section ───────────────────────────────────────────────
 
-function InspirationBanner() {
+const PRACTICAL_TIPS = [
+  {
+    icon: TrendingUp, color: 'text-emerald-400', accent: 'border-emerald-500/20',
+    title: 'Post om morgenen',
+    text: 'Opslag lagt op kl. 6–9 får i snit flest Ja Tak. Morgenkunder er aktive og konkurrencen om opmærksomhed er lavere.',
+  },
+  {
+    icon: ShoppingBag, color: 'text-blue-400', accent: 'border-blue-500/20',
+    title: 'Gør varen konkret',
+    text: 'Skriv mærke, vægt og antal. "Tulip grillpølser 500g" konverterer bedre end bare "pølser".',
+  },
+  {
+    icon: Star, color: 'text-violet-400', accent: 'border-violet-500/20',
+    title: 'Brug en enkel titel',
+    text: 'Korte, specifikke titler klarer sig bedst. Undgå lange sætninger og salgsargumenter i titlen.',
+  },
+  {
+    icon: Calendar, color: 'text-amber-400', accent: 'border-amber-500/20',
+    title: 'Brug kategori og timing rigtigt',
+    text: 'Visse kategorier performer markant bedre i bestemte måneder. Tjek tabellen herunder.',
+  },
+  {
+    icon: Zap, color: 'text-sky-400', accent: 'border-sky-500/20',
+    title: 'Begrænsning kan skabe handling',
+    text: 'Fx "Max 2 pr. kunde" eller "Kun fredag". Skaber urgency og kan løfte antal Ja Tak.',
+  },
+]
+
+function BestPractices() {
   return (
-    <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-950/40 to-violet-950/30 p-5 flex flex-col sm:flex-row sm:items-center gap-4">
-      <div className="p-3 bg-blue-600/20 rounded-2xl border border-blue-500/30 self-start sm:self-auto shrink-0">
-        <Lightbulb size={24} className="text-blue-300" />
+    <div>
+      <SectionHeader
+        icon={Sparkles}
+        title="Typisk noget der løfter et opslag"
+        subtitle="Mønstre fra 680.000+ opslag du kan bruge med det samme."
+        color="text-amber-400"
+      />
+      <div className="space-y-2">
+        {PRACTICAL_TIPS.map(({ icon: Icon, color, accent, title, text }) => (
+          <div key={title} className={`flex items-start gap-4 rounded-2xl border bg-slate-900/50 px-5 py-4 ${accent}`}>
+            <div className="shrink-0 mt-0.5 p-2 rounded-xl bg-slate-800 border border-slate-700/60">
+              <Icon size={15} className={color} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-100 mb-0.5">{title}</p>
+              <p className="text-xs text-slate-400 leading-relaxed">{text}</p>
+            </div>
+          </div>
+        ))}
       </div>
-      <div>
-        <h3 className="font-bold text-slate-100 mb-1">Maksimer dine Ja Tak med data</h3>
-        <p className="text-sm text-slate-300 leading-relaxed">
-          Som de eneste i Danmark har vi fuld historik på alle Ja Tak-opslag.
-          Brug inspirationen herunder til at vælge den rigtige kategori, pris og titel —
-          og øg dine chancer for et godt salg markant.
-          Du kan også springe direkte til <span className="text-violet-300 font-medium">AI Ja Tak Generatoren</span> for at få forslag skrevet automatisk.
-        </p>
-      </div>
-      <a
-        href="#/ai-jatak"
-        className="shrink-0 flex items-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
-        onClick={e => { e.preventDefault(); window.location.hash = '/ai-jatak' }}
-      >
-        AI Generator <ChevronRight size={15} />
-      </a>
     </div>
   )
 }
@@ -450,36 +511,49 @@ export default function ButiksuniversPage() {
   })
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <div className="max-w-6xl mx-auto space-y-10">
 
-      {/* Header */}
-      <div className="flex items-start gap-4">
-        <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-600/20 to-violet-600/20 border border-blue-500/30">
-          <ShoppingBag size={26} className="text-blue-300" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100">Butiksunivers</h1>
-          <p className="text-sm text-slate-400 mt-0.5">
-            Din datadrevne guide til bedre Ja Tak-tilbud — baseret på 680.000+ historiske opslag
-          </p>
+      {/* ── Hero ── */}
+      <div className="rounded-3xl border border-slate-700/50 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950/30 px-8 py-10 sm:py-12">
+        <h1 className="text-3xl sm:text-4xl font-bold text-slate-100 leading-tight max-w-xl mb-3">
+          Se hvad der virker<br />før du poster
+        </h1>
+        <p className="text-base text-slate-400 max-w-lg mb-6 leading-relaxed">
+          680.000+ Ja Tak opslag analyseret. Brug data til at vælge bedre titel, pris og kategori.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={navigateToAI}
+            className="flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+          >
+            <Sparkles size={15} />
+            Åbn AI Generator
+          </button>
+          <button
+            onClick={() => document.getElementById('search-section')?.scrollIntoView({ behavior: 'smooth' })}
+            className="text-xs text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            Søg i historiske opslag
+          </button>
         </div>
       </div>
 
-      {/* Banner */}
-      <InspirationBanner />
+      {/* ── Søgning ── */}
+      <div id="search-section">
+        <SearchPanel />
+      </div>
 
-      {/* Smart tips */}
+      {/* ── Data indsigter ── */}
       <div>
         <SectionHeader
           icon={Zap}
-          title="Smarte råd fra data"
-          subtitle="Hvad der faktisk virker — opgjort på tværs af alle butikker og år"
+          title="Hvad virker ofte?"
           color="text-emerald-400"
         />
         {tips
-          ? <TipsSection tips={tips} />
+          ? <InsightsGrid tips={tips} />
           : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="h-32 rounded-2xl bg-slate-800/60 animate-pulse" />
               ))}
@@ -488,40 +562,13 @@ export default function ButiksuniversPage() {
         }
       </div>
 
-      {/* Product search */}
-      <SearchPanel />
+      {/* ── AI CTA mid-page ── */}
+      <AICTAStrip message="Har du varen klar?" />
 
-      {/* Quick checklist */}
-      <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-6">
-        <SectionHeader
-          icon={Star}
-          title="Tjekliste til dit næste opslag"
-          subtitle="Gå igennem disse punkter inden du poster"
-          color="text-amber-400"
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[
-            { label: 'Er prisen med i titlen?', note: '+34% mere Ja Tak når prisen fremgår', done: 'border-emerald-500/30 bg-emerald-950/10' },
-            { label: 'Bruger du emojis?', note: 'Tilføjer +5% engagement konsekvent', done: 'border-violet-500/30 bg-violet-950/10' },
-            { label: 'Er varen under 50 kr?', note: 'Billige varer konverterer bedst (21 ja tak)', done: 'border-blue-500/30 bg-blue-950/10' },
-            { label: 'Passer kategorien til måneden?', note: 'Check Sæsonkortet — Mejeri & Is er stærkt i marts', done: 'border-amber-500/30 bg-amber-950/10' },
-            { label: 'Er lageret realistisk?', note: 'Oversold tilbud skader fremtidigt engagement', done: 'border-red-500/30 bg-red-950/10' },
-            { label: 'Klar til AI-generering?', note: 'Hop til AI-generatoren for 3 færdige forslag', done: 'border-slate-600/60 bg-slate-800/30' },
-          ].map(item => (
-            <div key={item.label} className={`rounded-xl border ${item.done} p-4`}>
-              <div className="flex items-start gap-2">
-                <div className="w-4 h-4 rounded border border-slate-500 shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-200">{item.label}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{item.note}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ── Det virker ofte ── */}
+      <BestPractices />
 
-      {/* Two columns: top titles + seasonal */}
+      {/* ── Top titler + Sæson ── */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {categories.length > 0
           ? <TopTitlesPanel categories={categories} />
@@ -529,6 +576,25 @@ export default function ButiksuniversPage() {
         }
         <SeasonalPanel />
       </div>
+
+      {/* ── Bottom AI CTA ── */}
+      <div className="rounded-3xl border border-violet-500/20 bg-gradient-to-br from-violet-950/30 to-blue-950/20 px-8 py-8 flex flex-col sm:flex-row sm:items-center gap-5">
+        <div className="flex-1">
+          <h3 className="text-lg font-bold text-slate-100 mb-1">Klar til at lave dit næste opslag?</h3>
+          <p className="text-sm text-slate-400">
+            Skriv varen og prisen. AI laver resten på under 30 sekunder.
+          </p>
+        </div>
+        <button
+          onClick={navigateToAI}
+          className="shrink-0 flex items-center gap-2 bg-violet-600 hover:bg-violet-500 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm"
+        >
+          <Sparkles size={15} />
+          Åbn AI Generator
+          <ChevronRight size={15} />
+        </button>
+      </div>
+
     </div>
   )
 }

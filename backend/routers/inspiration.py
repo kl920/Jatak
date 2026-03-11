@@ -138,12 +138,12 @@ def tips():
         FROM jatak WHERE jatak_count > 0
     """).fetchone()
 
-    # Price shown vs not (price > 0 means it's entered)
-    p = conn.execute("""
+    # Publish time: morning (6-9) vs midday (11-14)
+    pt = conn.execute("""
         SELECT
-            ROUND(AVG(CASE WHEN price > 0              THEN jatak_count END), 1),
-            ROUND(AVG(CASE WHEN price IS NULL OR price = 0 THEN jatak_count END), 1)
-        FROM jatak WHERE jatak_count > 0
+            ROUND(AVG(CASE WHEN published_hour BETWEEN 6  AND 9  THEN jatak_count END), 1),
+            ROUND(AVG(CASE WHEN published_hour BETWEEN 11 AND 14 THEN jatak_count END), 1)
+        FROM jatak WHERE jatak_count > 0 AND published_hour IS NOT NULL
     """).fetchone()
 
     # Price buckets
@@ -168,8 +168,8 @@ def tips():
 
     with_emoji    = float(e[0] or 0)
     without_emoji = float(e[1] or 0)
-    with_price    = float(p[0] or 0)
-    without_price = float(p[1] or 0)
+    morning_avg   = float(pt[0] or 0)
+    midday_avg    = float(pt[1] or 0)
 
     return {
         "emoji": {
@@ -177,10 +177,10 @@ def tips():
             "without":    without_emoji,
             "delta_pct":  round((with_emoji - without_emoji) / max(without_emoji, 1) * 100, 1),
         },
-        "price_shown": {
-            "with":       with_price,
-            "without":    without_price,
-            "delta_pct":  round((with_price - without_price) / max(without_price, 1) * 100, 1),
+        "publish_time": {
+            "morning":    morning_avg,
+            "midday":     midday_avg,
+            "delta_pct":  round((morning_avg - midday_avg) / max(midday_avg, 1) * 100, 1),
         },
         "price_bucket": {
             "under_50":  float(b[0] or 0),

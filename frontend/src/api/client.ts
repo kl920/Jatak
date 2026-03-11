@@ -216,7 +216,7 @@ export interface SeasonalCategory {
 
 export interface InspirationTips {
   emoji: { with: number; without: number; delta_pct: number }
-  price_shown: { with: number; without: number; delta_pct: number }
+  publish_time: { morning: number; midday: number; delta_pct: number }
   price_bucket: { under_50: number; '50_to_100': number; over_100: number }
   top_categories: { category: string; avg_jatak: number }[]
 }

@@ -23,9 +23,9 @@ function StatCard({ label, value, sub, accent = false }: {
 
 function fmt(n: number) { return n.toLocaleString('da-DK') }
 function fmtDKK(n: number) {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)} M kr`
-  if (n >= 1_000)     return `${(n / 1_000).toFixed(0)} k kr`
-  return `${n.toFixed(0)} kr`
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toLocaleString('da-DK', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mia. kr`
+  if (n >= 1_000_000)     return `${(n / 1_000_000).toLocaleString('da-DK', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mio. kr`
+  return `${n.toLocaleString('da-DK', { maximumFractionDigits: 0 })} kr`
 }
 
 const RADIAN = Math.PI / 180

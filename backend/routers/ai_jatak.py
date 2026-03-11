@@ -102,8 +102,9 @@ Din opgave er at generere 3 forslag til titel og beskrivelse for et nyt Ja Tak-t
 
 REGLER:
 - Titlen skal være maks 80 tegn og fængende
+- Inkludér altid prisen direkte i titlen (fx "Tulip grillpølser 500g – kun 29 kr!"). Prisen gør tilbuddet konkret og troværdigt.
 - Brug emojis i samme stil som eksemplerne (hvis mange emojis, brug emojis; hvis ingen, undgå)
-- Beskriv pris, mængde og evt. afhentningsfrist tydeligt
+- Gentag pris og mængde i beskrivelsen også
 - Brug dansk sprog og samme tone som eksemplerne
 - Beskrivelsen typisk 2-6 linjer
 - Lav 3 different stilistiske varianter (f.eks. emoji-tung, mere sober, kort/direkte)

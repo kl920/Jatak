@@ -49,7 +49,7 @@ def get_kpi(
             COUNT(*)                                                        AS total_offers,
             COALESCE(SUM(jatak_count), 0)                                   AS total_jatak,
             COALESCE(SUM(total_sold), 0)                                    AS total_sold,
-            COALESCE(SUM(turnover), 0)                                      AS total_turnover,
+            COALESCE(SUM(price * total_sold), 0)                            AS total_turnover,
             COALESCE(SUM(total_sold) * 1.0 / NULLIF(SUM(total_orders), 0), 0)       AS avg_basket_qty,
             COALESCE(SUM(total_sold * price) / NULLIF(SUM(total_orders), 0), 0)     AS avg_basket_value,
             COALESCE(SUM(fb_orders), 0)                                     AS fb_orders,

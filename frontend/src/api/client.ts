@@ -246,13 +246,4 @@ export const fetchChurnSummary = () =>
 export const fetchChurnStores = (chain: string) =>
   api.get<ChurnStore[]>(`/stores/churn/stores?chain=${encodeURIComponent(chain)}`).then(r => r.data)
 
-// ── Legacy ───────────────────────────────────────────────────────────────────
-export interface KPI {
-  total_offers: number
-  total_stores: number
-  total_jatak: number
-  avg_jatak_per_offer: number
-  top_category: string
-  growth_pct: number
-}
-export const fetchKPIs = () => api.get<KPI>('/overview').then(r => r.data)
+

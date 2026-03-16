@@ -69,8 +69,4 @@ export const fetchChurnSummary = () => load<ChurnSummary>('churn_summary')
 export const fetchChurnStores  = (chain: string) =>
   load<ChurnStore[]>(`churn_stores_${chainSlug(chain)}`)
 
-// Legacy
-export const fetchKPIs = () => load<any>('kpi')
 
-// Dummy api object (some components may import it)
-export const api = { get: () => Promise.reject('Static mode'), post: () => Promise.reject('Static mode') } as any

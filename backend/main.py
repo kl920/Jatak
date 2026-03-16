@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response, FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from routers import overview, market, products, correlation, kpi, trend, stores, categories, ai_jatak, inspiration, churn
+from routers import kpi, trend, stores, categories, ai_jatak, inspiration, churn
 
 # ── Auth config ────────────────────────────────────────────────────────────────
 AUTH_USER = os.getenv("AUTH_USER", "Coop")
@@ -55,13 +55,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Legacy routers
-app.include_router(overview.router)
-app.include_router(market.router)
-app.include_router(products.router)
-app.include_router(correlation.router)
-
-# New dashboard routers
 app.include_router(kpi.router)
 app.include_router(trend.router)
 app.include_router(stores.router)

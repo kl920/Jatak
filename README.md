@@ -1,214 +1,131 @@
 # Jatakportalen Dashboard 2026
 
-Management dashboard over **47.002 Ja Tak-tilbud** fra 453 Coop-butikker i 2026.  
-Bygget med FastAPI + DuckDB + React + Tailwind CSS.
+Analytics dashboard for **680.000+ Ja Tak offers** from 549 Coop stores (2024–2026).  
+Built with FastAPI + DuckDB + React + Tailwind CSS.
+
+**Live demo:** [kl920.github.io/Jatak](https://kl920.github.io/Jatak/) (login: Coop / Jatak12+)
 
 ---
 
-## Hurtig start
+## Quick start
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File START.ps1
+cd C:\AI\Jatak
+.\setup.ps1    # First time: creates venv, installs packages
+.\start.ps1    # Starts backend + frontend, opens browser
 ```
 
-Åbn **http://localhost:5173** i browseren.  
-API docs: **http://localhost:8000/docs**
+- Frontend: **http://localhost:5173**
+- API docs: **http://localhost:8000/docs**
 
 ---
 
 ## Tech stack
 
-| Lag | Teknologi |
+| Layer | Technology |
 |---|---|
-| Query engine | DuckDB 0.10 (kolonnebaseret SQL på Parquet) |
+| Query engine | DuckDB 0.10 (columnar SQL on Parquet) |
 | Backend API | FastAPI + Uvicorn, Python 3.12 |
 | Frontend | React 18 + Vite 5 + Tailwind CSS 3 |
-| Grafer | Recharts 2 |
-| Data fetching | TanStack Query 5 |
-| Sprog | TypeScript (frontend), Python (backend) |
+| Charts | Recharts 2 |
+| Data fetching | TanStack React Query 5 |
+| Language | TypeScript (frontend), Python (backend) |
+| Deployment | GitHub Pages (static JSON) |
+| Auth | HTTP Basic Auth (backend), client-side PasswordGate (GitHub Pages) |
 
 ---
 
-## Dashboard-sider
+## Dashboard pages
 
-| Side | URL | Indhold |
+| Page | Route | Content |
 |---|---|---|
-| **KPI Oversigt** | `/` | 6 KPI-kort, Gns. kurvværdi-ring, kanal-fordeling (FB/SMS/COOP) |
-| **Ugentlig Trend** | `/trend` | Tilbud & Ja Tak pr. uge, top-3 uger, aktive butikker, salgsprocent |
-| **Butik Benchmark** | `/butikker` | Top 20 butikker (kardex-niveau), publiceringstidspunkt-heatmap |
-| **Kategorier** | `/kategorier` | Kategori-performance, prisbrønd-analyse, avg. omsætning pr. tilbud |
+| **Dashboard** | `/` | KPIs, weekly trend chart, channel split (FB/SMS/COOP), basket metrics |
+| **Kategorier** | `/kategorier` | Category performance, price-bucket analysis |
+| **Butiksudvikling** | `/butiksudvikling` | Store churn analysis, chain breakdown, weekly top 10, all-time top 20 |
+| **Butiksunivers** | `/butiksunivers` | Inspiration for stores: top titles, search, seasonal trends, smart tips |
+| **AI Ja Tak** | `/ai-jatak` | AI-powered offer text generator (requires OpenAI key + local backend) |
 
 ---
 
-## KPI-definitioner
-
-| Metric | Formel | Forklaring |
-|---|---|---|
-| Ja Tak | `SUM(jatak_count)` | Antal Ja Tak-tilsagn |
-| Solgte varer | `SUM(total_sold)` | Faktisk solgte stk |
-| Gns. kurv (stk) | `SUM(total_sold) / SUM(total_orders)` | Stk pr. ordre |
-| Gns. kurvværdi | `SUM(total_sold × price) / SUM(total_orders)` | Kr pr. ordre |
-| Avg. omsætning | `AVG(total_sold × price)` | Pr. tilbud (kategorisiden) |
-| Aktive butikker | `COUNT(DISTINCT kardex_id)` | Unikke butikker pr. uge |
-
-> **OBS:** `turnover`-kolonnen i rådata er upålidelig (kun 4.6% af rækker matcher `price × orders`).  
-> Alle omsætningsberegninger bruger `total_sold × price` i stedet.
-
----
-
-## Projektstruktur
+## Project structure
 
 ```
 Jatak/
-├── START.ps1                    ← Start alt herfra
+├── start.ps1                     Start backend + frontend
+├── setup.ps1                     First-time setup (venv + npm install)
+├── export_static.py              Export API → static JSON for GitHub Pages
+│
 ├── backend/
-│   ├── main.py                  FastAPI app
-│   ├── database.py              DuckDB (thread-safe, threading.local)
+│   ├── main.py                   FastAPI app + auth middleware
+│   ├── database.py               DuckDB connection (thread-safe)
 │   ├── requirements.txt
 │   ├── data/
-│   │   └── jatak.parquet        47.002 rækker, 2026-data
+│   │   ├── jatak.parquet         680K rows, 139 MB (Git LFS)
+│   │   ├── api_stores_list.xlsx  Official active store list
+│   │   └── active_stores_list_2026.xlsx  2026 active stores (HK)
+│   ├── models/
+│   │   └── schemas.py            Pydantic models
 │   └── routers/
-│       ├── kpi.py               /api/kpi, /api/kpi/stores, /api/kpi/date-range
-│       ├── trend.py             /api/trend/weekly
-│       ├── stores.py            /api/stores/ranking, /api/stores/heatmap
-│       └── categories.py        /api/categories/performance, /api/categories/pricepoints
+│       ├── kpi.py                /api/kpi, /api/kpi/stores, /api/kpi/date-range
+│       ├── trend.py              /api/trend/weekly
+│       ├── stores.py             /api/stores/ranking
+│       ├── categories.py         /api/categories/performance, /api/categories/pricepoints
+│       ├── churn.py              /api/stores/churn/summary, /api/stores/churn/stores
+│       ├── inspiration.py        /api/inspiration/top-titles, /seasonal, /tips, /search
+│       └── ai_jatak.py           /api/ai/suggest, /api/ai/categories
+│
 └── frontend/
     └── src/
-        ├── api/client.ts        Axios + TypeScript-interfaces + date-normalisering
-        ├── context/FilterContext.tsx   Global filter (kæde + datointerval)
-        ├── components/layout/
-        │   ├── Sidebar.tsx
-        │   └── GlobalFilter.tsx
+        ├── api/
+        │   ├── client.ts              Live API client (Axios)
+        │   └── client.static.ts       Static JSON client (GitHub Pages)
+        ├── components/
+        │   ├── layout/
+        │   │   ├── Sidebar.tsx
+        │   │   └── GlobalFilter.tsx
+        │   └── PasswordGate.tsx        Client-side auth for GitHub Pages
+        ├── context/
+        │   └── FilterContext.tsx        Global filter state (store, date range)
         └── pages/
-            ├── KPIPage.tsx
-            ├── TrendPage.tsx
-            ├── StoresPage.tsx
-            └── CategoriesPage.tsx
+            ├── DashboardPage.tsx
+            ├── CategoriesPage.tsx
+            ├── ChurnPage.tsx
+            ├── ButiksuniversPage.tsx
+            └── AIJatakPage.tsx
 ```
 
 ---
 
-## Kendte dataforhold
+## Key data concepts
 
-- **Datoformat:** Windows dansk locale kan give `DD/MM/YYYY` fra datovælger.  
-  Håndteres af `toISODate()` i `client.ts` (frontend) og `_norm()` i alle routere (backend).
-- **DuckDB thread-safety:** Løst med `threading.local()` i `database.py` — hver request-tråd får sin egen forbindelse.
-- **Pris-outliers:** 1 række med pris 13.000 kr (sandsynlig fejl), men negligibel effekt på gennemsnit.
-- **total_sold max:** 10.878 stk på én runde — reelt edge case, ikke fjernet.
-
-
----
-
-## Tech Stack
-
-| Lag | Teknologi | Hvorfor |
-|---|---|---|
-| **Query engine** | DuckDB | Kolonnebaseret, vektoriseret SQL direkte på Parquet – 2M rækker på under 1 sek. |
-| **Data format** | Apache Parquet + ZSTD | 5-10× komprimering ift. CSV, DuckDB læser kun de kolonner der efterspørges |
-| **Backend API** | FastAPI + Uvicorn | Asynkron, type-sikker, auto-genererede Swagger/OpenAPI docs |
-| **Caching** | In-memory TTL-cache | Dashboard-kald rammes hyppigt; resultater caches i 5 min. |
-| **Frontend** | React 18 + Vite | HMR under udvikling, lynhurtigt build |
-| **Styling** | Tailwind CSS | Utility-first – intet CSS-bloat |
-| **Grafer** | Recharts | Let, deklarativt, fuld kontrol over farver og stil |
-| **State/data** | TanStack Query | Automatisk caching, re-fetch og loading-states |
+| Field | Meaning |
+|---|---|
+| `jatak_count` | Number of customers who wrote "Ja Tak" in FB comments |
+| `total_sold` | Actual items sold / picked up |
+| `initial_stock` | Items allocated for the offer |
+| `kardex_id` | Unique store identifier |
+| `store_name` | Self-chosen name (can be misleading) |
 
 ---
 
-## Projekt-struktur
+## GitHub Pages deployment
 
-```
-Jatak/
-├── backend/
-│   ├── main.py               FastAPI app
-│   ├── database.py           DuckDB forbindelseshåndtering
-│   ├── requirements.txt
-│   ├── routers/
-│   │   ├── overview.py       KPI-kort
-│   │   ├── market.py         Markedsudvikling over tid
-│   │   ├── products.py       Top kategorier & produkter
-│   │   └── correlation.py    Tekst/format korrelationer
-│   ├── models/schemas.py     Pydantic-modeller
-│   ├── utils/cache.py        TTL in-memory cache
-│   └── data/
-│       ├── seed.py           Genererer 2M realistiske testrækker
-│       └── jatak.parquet     (auto-genereret)
-│
-├── frontend/
-│   ├── src/
-│   │   ├── api/client.ts     Axios-klient + TypeScript-typer
-│   │   ├── components/
-│   │   │   ├── layout/Sidebar.tsx
-│   │   │   └── charts/
-│   │   │       ├── KPICards.tsx
-│   │   │       ├── MarketGrowthChart.tsx
-│   │   │       ├── TopCategoriesChart.tsx
-│   │   │       └── CorrelationChart.tsx
-│   │   ├── pages/
-│   │   │   ├── OverviewPage.tsx
-│   │   │   ├── MarketPage.tsx
-│   │   │   ├── ProductsPage.tsx
-│   │   │   └── CorrelationPage.tsx
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── tailwind.config.js
-│   └── vite.config.ts        Proxy /api → localhost:8000
-│
-├── setup.ps1                 Installer alt + generer testdata
-└── start.ps1                 Start backend + frontend
-```
+The live site serves pre-baked static JSON (no backend required).
 
----
+To update:
 
-## Hurtig start
-
-### 1. Forudsætninger
-- Python 3.11+
-- Node.js 20+
-
-### 2. Setup (kun én gang)
 ```powershell
-.\setup.ps1
+.\start.ps1                                        # Start local backend
+python export_static.py                             # Export 48 JSON files
+cd frontend
+$env:VITE_STATIC = "true"; npm run build            # Build with static client
+npx gh-pages -d dist --dotfiles --no-history        # Deploy
 ```
-Dette:
-- Opretter Python venv og installerer backend-pakker
-- Genererer `jatak.parquet` med 2.000.000 realistiske testrækker (~150 MB, tager ~60 sek.)
-- Installerer npm-pakker til frontend
-
-### 3. Start
-```powershell
-.\start.ps1
-```
-Åbn **http://localhost:5173** i din browser.
 
 ---
 
-## Brug med rigtig data
+## Known data notes
 
-Erstat `backend/data/jatak.parquet` med din rigtige Parquet-fil.  
-Kolonne-navne den forventer:
-
-| Kolonne | Type | Eksempel |
-|---|---|---|
-| `id` | INTEGER | 1234 |
-| `created_date` | DATE | 2024-03-15 |
-| `store_name` | VARCHAR | "ABC Handel ApS" |
-| `category` | VARCHAR | "Elektronik" |
-| `title` | VARCHAR | "iPhone 14 billig" |
-| `description` | VARCHAR | "God stand, sælges da..." |
-| `price` | DOUBLE | 1299.00 |
-| `jatak_count` | INTEGER | 47 |
-| `in_stock` | BOOLEAN | true |
-| `image_url` | VARCHAR | "https://..." |
-
----
-
-## API dokumentation
-Swagger UI: **http://localhost:8000/docs**
-
-## Dashboard sider
-| Side | URL | Indhold |
-|---|---|---|
-| Overblik | `/` | KPI-kort, månedsgraf, top kategorier, 4× korrelationsøjeblikke |
-| Markedsudvikling | `/marked` | Interaktiv tidsseriegraf med dag/uge/måned-granularitet |
-| Produkter | `/produkter` | Kategorioversigt + filtrerbar top-20 produkttabel |
-| Korrelation | `/korrelation` | 4 akser: tekstlængde, titellængde, pris, billede |
+- **Date format:** Danish locale may give `DD/MM/YYYY` from date pickers. Handled by `toISODate()` in `client.ts`.
+- **DuckDB thread-safety:** Solved with `threading.local()` in `database.py`.
+- **Churn logic:** Compares 2025 active stores vs 2026 activity. Excel files provide official store list + HK classification.

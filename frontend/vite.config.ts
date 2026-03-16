@@ -8,9 +8,9 @@ export default defineConfig({
   plugins: [react()],
   base: isStatic ? '/Jatak/' : '/',
   resolve: isStatic ? {
-    alias: {
-      '../api/client': path.resolve(__dirname, 'src/api/client.static.ts'),
-    },
+    alias: [
+      { find: /.*\/api\/client$/, replacement: path.resolve(__dirname, 'src/api/client.static') },
+    ],
   } : {},
   server: {
     port: 5173,

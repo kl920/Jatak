@@ -56,7 +56,6 @@ def get_store_ranking(
             COUNT(*)                                                              AS offer_count,
             COALESCE(SUM(jatak_count), 0)                                        AS total_jatak,
             COALESCE(AVG(jatak_count), 0)                                        AS avg_jatak,
-            COALESCE(SUM(total_sold) * 100.0 / NULLIF(SUM(initial_stock), 0), 0) AS sell_through,
             COALESCE(SUM(turnover), 0)                                            AS total_turnover
         FROM jatak
         {w}
@@ -73,42 +72,10 @@ def get_store_ranking(
             "offer_count":    int(r[2]),
             "total_jatak":    int(r[3]),
             "avg_jatak":      round(float(r[4]), 1),
-            "sell_through":   round(float(r[5] or 0), 1),
-            "total_turnover": round(float(r[6] or 0), 0),
+            "total_turnover": round(float(r[5] or 0), 0),
         }
         for r in rows
     ]
 
 
-@router.get("/heatmap")
-def get_hour_heatmap(
-    date_from: Optional[str] = Query(None),
-    date_to:   Optional[str] = Query(None),
-):
-    """Average Ja Tak per published hour (0–23)."""
-    conn = get_conn()
-    w = _where(None, date_from, date_to)
 
-    rows = conn.execute(f"""
-        SELECT
-            published_hour,
-            COUNT(*)                        AS offer_count,
-            COALESCE(AVG(jatak_count), 0)  AS avg_jatak,
-            COALESCE(SUM(jatak_count), 0)  AS total_jatak
-        FROM jatak
-        {w}
-        GROUP BY published_hour
-        ORDER BY published_hour
-    """).fetchall()
-
-    # Fill all 24 hours even if no data
-    data = {r[0]: {"offer_count": int(r[1]), "avg_jatak": round(float(r[2]), 1), "total_jatak": int(r[3])} for r in rows}
-    return [
-        {
-            "hour":        h,
-            "offer_count": data.get(h, {}).get("offer_count", 0),
-            "avg_jatak":   data.get(h, {}).get("avg_jatak", 0.0),
-            "total_jatak": data.get(h, {}).get("total_jatak", 0),
-        }
-        for h in range(24)
-    ]

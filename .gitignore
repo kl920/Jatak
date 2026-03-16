@@ -5,11 +5,10 @@ backend/**/__pycache__/
 backend/*.log
 backend/uvicorn*.log
 
-# Data files (large, not for repo)
-backend/data/*.parquet
+# Data files (large binary — tracked by Git LFS)
 backend/data/*.duckdb
 backend/data/*.duckdb.wal
-data/
+/data/
 
 # Node
 frontend/node_modules/

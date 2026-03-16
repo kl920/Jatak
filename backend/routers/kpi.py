@@ -111,49 +111,4 @@ def get_date_range():
     return {"date_min": row[0], "date_max": row[1]}
 
 
-@router.get("/yearly")
-def get_yearly_kpi(store: Optional[str] = Query(None)):
-    """KPI aggregated per year — used for 2024 vs 2025 comparison."""
-    conn = get_conn()
-    w = _where(store, None, None)
 
-    rows = conn.execute(f"""
-        SELECT
-            YEAR(created_date)                                                    AS year,
-            COUNT(*)                                                              AS total_offers,
-            COALESCE(SUM(jatak_count), 0)                                        AS total_jatak,
-            COALESCE(SUM(total_sold), 0)                                         AS total_sold,
-            COALESCE(SUM(total_sold) * 1.0 / NULLIF(SUM(total_orders), 0), 0)   AS avg_basket_qty,
-            COALESCE(SUM(total_sold * price) / NULLIF(SUM(total_orders), 0), 0) AS avg_basket_value,
-            COALESCE(SUM(total_sold) * 100.0 / NULLIF(SUM(initial_stock), 0), 0) AS sell_through,
-            COUNT(DISTINCT kardex_id)                                             AS total_stores,
-            COALESCE(SUM(fb_orders), 0)                                          AS fb_orders,
-            COALESCE(SUM(sms_orders), 0)                                         AS sms_orders,
-            COALESCE(SUM(coop_orders), 0)                                        AS coop_orders
-        FROM jatak
-        {w}
-        GROUP BY 1
-        ORDER BY 1
-    """).fetchall()
-
-    result = []
-    for r in rows:
-        fb_o   = float(r[8] or 0)
-        sms_o  = float(r[9] or 0)
-        coop_o = float(r[10] or 0)
-        total_ch = fb_o + sms_o + coop_o
-        def pct(x): return round(x * 100.0 / total_ch, 1) if total_ch > 0 else 0.0
-        result.append({
-            "year":             int(r[0]),
-            "total_offers":     int(r[1]),
-            "total_jatak":      int(r[2]),
-            "total_sold":       int(r[3]),
-            "avg_basket_qty":   round(float(r[4] or 0), 2),
-            "avg_basket_value": round(float(r[5] or 0), 2),
-            "sell_through":     round(float(r[6] or 0), 1),
-            "total_stores":     int(r[7]),
-            "fb_pct":           pct(fb_o),
-            "sms_pct":          pct(sms_o),
-            "coop_pct":         pct(coop_o),
-        })
-    return result

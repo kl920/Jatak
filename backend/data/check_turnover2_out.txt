@@ -1,0 +1,44 @@
+  kardex=6820  solgt=6  ordre=6  turnover=1,000,000,000  kr/ordre=166,666,667  pris=1000000  forv=6,000,000
+  titel: SPAR 10% PÅ ALT VIN
+
+  kardex=3045  solgt=2  ordre=2  turnover=1,000,000,000  kr/ordre=500,000,000  pris=1000000  forv=2,000,000
+  titel: *ÅRETS PÅSKE NYHED*
+
+  kardex=2220  solgt=7  ordre=6  turnover=149,900,000  kr/ordre=24,983,333  pris=1499  forv=10,493
+  titel: GRILL MENU :-) HOLD FEST MED KVICKLY
+
+  kardex=5750  solgt=6  ordre=6  turnover=114,898,851  kr/ordre=19,149,809  pris=1149  forv=6,894
+  titel: 🚨🚨KÆMPE MÅNEDENS KØDKASSE🚨🚨
+
+  kardex=6501  solgt=95  ordre=55  turnover=110,000,000  kr/ordre=2,000,000  pris=220  forv=20,900
+  titel: 🔥🔥🔥Monster boom🔥🔥🔥
+
+  kardex=6820  solgt=6  ordre=6  turnover=100,000,000  kr/ordre=16,666,667  pris=10000  forv=60,000
+  titel: 🔥🔥🥶🥶SPAR 20% PÅ ALT DYBFROST🥶🥶🔥🔥
+
+  kardex=6501  solgt=23  ordre=17  turnover=99,900,000  kr/ordre=5,876,471  pris=999  forv=22,977
+  titel: 🔥FEST MENU VOUCHER🔥
+
+  kardex=6501  solgt=16  ordre=13  turnover=99,900,000  kr/ordre=7,684,615  pris=999  forv=15,984
+  titel: 🔥FEST MENU VOUCHER🔥
+
+  kardex=6501  solgt=4  ordre=4  turnover=99,900,000  kr/ordre=24,975,000  pris=999  forv=3,996
+  titel: 🔥FEST MENU VOUCHER🔥
+
+  kardex=2220  solgt=29  ordre=18  turnover=99,900,000  kr/ordre=5,550,000  pris=999  forv=28,971
+  titel: GRILL MENU :-) HOLD FEST MED KVICKLY
+
+
+=== ALLE DATA ===
+  total_sold:            27,701,329
+  total_orders:          12,004,068
+  total_turnover:    13,006,004,530 kr
+  avg kr/ordre:            1,083.47 kr
+  P99 kr/ordre:           11,500.00 kr
+
+=== BRUGERENS BEREGNING (pris x solgte) ===
+  avg_price:                 104.80 kr
+  price x total_sold:    1,470,266,665 kr  = 1.470 mia
+  price x total_orders:    941,634,883 kr  = 0.942 mia
+=== TURNOVER OUTLIERS (top 10 opslag) ===
+

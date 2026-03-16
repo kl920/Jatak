@@ -1,14 +1,13 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, TrendingUp, Store, Tag, Sparkles, ShoppingBag } from 'lucide-react'
+import { LayoutDashboard, Tag, Sparkles, ShoppingBag, Activity } from 'lucide-react'
 import clsx from 'clsx'
 
 const links = [
-  { to: '/',              icon: LayoutDashboard, label: 'KPI Oversigt',     group: 'analyse' },
-  { to: '/trend',         icon: TrendingUp,      label: 'Ugentlig Trend',   group: 'analyse' },
-  { to: '/butikker',      icon: Store,           label: 'Butik Benchmark',  group: 'analyse' },
-  { to: '/kategorier',    icon: Tag,             label: 'Kategorier',       group: 'analyse' },
-  { to: '/butiksunivers', icon: ShoppingBag,     label: 'Butiksunivers',    group: 'butik'   },
-  { to: '/ai-jatak',      icon: Sparkles,        label: 'AI Ja Tak',        group: 'butik'   },
+  { to: '/',                icon: LayoutDashboard, label: 'Dashboard',        group: 'analyse' },
+  { to: '/kategorier',      icon: Tag,             label: 'Kategorier',       group: 'analyse' },
+  { to: '/butiksudvikling', icon: Activity,        label: 'Butiksudvikling',  group: 'analyse' },
+  { to: '/butiksunivers',   icon: ShoppingBag,     label: 'Butiksunivers',    group: 'butik'   },
+  { to: '/ai-jatak',        icon: Sparkles,        label: 'AI Ja Tak',        group: 'butik'   },
 ]
 
 export default function Sidebar() {
@@ -64,9 +63,7 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="px-5 py-4 text-xs text-slate-600 border-t border-slate-800">
-        47,002 tilbud · 453 butikker
-      </div>
+
     </aside>
   )
 }

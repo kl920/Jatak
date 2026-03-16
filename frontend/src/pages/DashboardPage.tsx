@@ -209,7 +209,7 @@ function LoadingState() {
 function ErrorState() {
   return (
     <div className="flex items-center justify-center h-64 text-slate-500">
-      Kunne ikke hente data — er backend kørende på port 8000?
+      Kunne ikke hente data — prøv at genindlæse siden
     </div>
   )
 }

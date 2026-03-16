@@ -1,0 +1,36 @@
+Kolonner: ['id', 'title', 'description', 'is_variant', 'store_name', 'kardex_id', 'category', 'created_date', 'published_hour', 'price', 'turnover', 'jatak_count', 'total_sold', 'total_orders', 'initial_stock', 'items_unsold', 'in_stock', 'oversold', 'fb_orders', 'fb_items_sold', 'fb_picked_up', 'fb_avg_items', 'sms_orders', 'sms_items_sold', 'coop_orders', 'coop_items_sold', 'has_emoji', 'image_url']
+
+Aktive i 2025:            549
+Aktive i 2026:            451
+Kun i 2025 (ikke 2026):   101
+
+Gemt: C:\AI\Jatak\backend\data\inactive_2026.csv
+
+kardex_id    store_name                      opslag  avg_jatak      seneste
+---------------------------------------------------------------------------
+4226         Superbrugsen Hovedkontor          1199       16.0   2025-11-22
+1165         Kvickly Hovedkontor                905       13.1   2025-12-28
+4425         Superbrugsen Hovedkontor           805       12.3   2025-09-25
+5384         Superbrugsen Hovedkontor           675       14.3   2025-12-30
+2600         Superbrugsen Hovedkontor           449       10.9   2025-12-29
+5646         Superbrugsen Hovedkontor           418       12.2   2025-03-23
+2835         Dagli'Brugsen                      292        7.6   2025-08-31
+4400         Kvickly Hovedkontor                264       14.1   2025-04-23
+3910         Kvickly Hovedkontor                241       17.5   2025-04-02
+2638         Dagli'Brugsen                      197        7.1   2025-04-19
+8365         Superbrugsen Hovedkontor           166        6.3   2025-12-12
+4100         Dagli'Brugsen                      165        7.5   2025-12-15
+6401         Superbrugsen Hovedkontor           137        4.2   2025-06-10
+7386         Superbrugsen Hovedkontor           134       11.9   2025-04-02
+8650         Kvickly Hovedkontor                130        9.3   2025-11-26
+6312         Dagli'Brugsen                      103        4.3   2025-03-14
+2608         Dagli'Brugsen                       81        6.8   2025-05-20
+7610         Brugseni Coop Grønland              68       11.7   2025-03-14
+1960         Kvickly Hovedkontor                 59        7.8   2025-11-27
+7660         Brugseni Coop Grønland              59       30.9   2025-02-17
+2381         Dagli'Brugsen                       58        4.9   2025-12-08
+24452        365discount                         51        2.5   2025-05-23
+3120         Superbrugsen Hovedkontor            48       23.6   2025-03-20
+4453         Superbrugsen Hovedkontor            47       12.8   2025-03-26
+2743         Dagli'Brugsen                       45        5.8   2025-04-04
+Eksempler gemt: C:\AI\Jatak\backend\data\no_price_examples.txt

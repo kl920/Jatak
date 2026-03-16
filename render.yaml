@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: jatakportalen
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: AUTH_USER
+        sync: false
+      - key: AUTH_PASS
+        sync: false

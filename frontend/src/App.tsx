@@ -2,12 +2,11 @@ import { Routes, Route } from 'react-router-dom'
 import Sidebar      from './components/layout/Sidebar'
 import GlobalFilter from './components/layout/GlobalFilter'
 import { FilterProvider } from './context/FilterContext'
-import KPIPage         from './pages/KPIPage'
-import TrendPage       from './pages/TrendPage'
-import StoresPage      from './pages/StoresPage'
+import DashboardPage   from './pages/DashboardPage'
 import CategoriesPage  from './pages/CategoriesPage'
 import AIJatakPage        from './pages/AIJatakPage'
 import ButiksuniversPage  from './pages/ButiksuniversPage'
+import ChurnPage          from './pages/ChurnPage'
 
 export default function App() {
   return (
@@ -23,12 +22,11 @@ export default function App() {
 
           <main className="flex-1 p-8 overflow-auto">
             <Routes>
-              <Route path="/"           element={<KPIPage />}        />
-              <Route path="/trend"      element={<TrendPage />}      />
-              <Route path="/butikker"   element={<StoresPage />}     />
+              <Route path="/"           element={<DashboardPage />}  />
               <Route path="/kategorier" element={<CategoriesPage />} />
-              <Route path="/ai-jatak"        element={<AIJatakPage />}       />
-              <Route path="/butiksunivers"    element={<ButiksuniversPage />} />
+              <Route path="/butiksudvikling"    element={<ChurnPage />}         />
+              <Route path="/butiksunivers"      element={<ButiksuniversPage />} />
+              <Route path="/ai-jatak"          element={<AIJatakPage />}       />
             </Routes>
           </main>
         </div>

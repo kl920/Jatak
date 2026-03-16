@@ -65,8 +65,6 @@ export interface WeekPoint {
   offer_count:    number
   total_jatak:    number
   avg_jatak:      number
-  avg_order_size: number
-  sell_through:   number
   active_stores:  number
   is_top3?:       boolean
 }
@@ -78,26 +76,15 @@ export const fetchWeeklyTrend = (f: Filters = {}) =>
 export interface StoreRank {
   kardex_id:      string
   chain:          string
-  label:          string   // e.g. "Kvickly #2010"
+  label:          string
   offer_count:    number
   total_jatak:    number
   avg_jatak:      number
-  sell_through:   number
   total_turnover: number
-}
-
-export interface HourPoint {
-  hour:        number
-  offer_count: number
-  avg_jatak:   number
-  total_jatak: number
 }
 
 export const fetchStoreRanking = (f: Filters = {}, limit = 20) =>
   api.get<StoreRank[]>(`/stores/ranking?limit=${limit}${qs(f) ? '&' + qs(f).slice(1) : ''}`).then(r => r.data)
-
-export const fetchHeatmap = (f: Filters = {}) =>
-  api.get<HourPoint[]>(`/stores/heatmap${qs(f)}`).then(r => r.data)
 
 // ── Categories ───────────────────────────────────────────────────────────────
 export interface CategoryPerf {
@@ -122,40 +109,6 @@ export const fetchCategoryPerf = (f: Filters = {}) =>
 
 export const fetchPricePoints = (f: Filters = {}) =>
   api.get<PricePoint[]>(`/categories/pricepoints${qs(f)}`).then(r => r.data)
-
-// ── Monthly trend (YoY) ──────────────────────────────────────────────────────
-export interface MonthPoint {
-  month:         string   // "2024-01"
-  year:          number
-  month_num:     number
-  offer_count:   number
-  total_jatak:   number
-  avg_jatak:     number
-  sell_through:  number
-  active_stores: number
-  avg_revenue:   number
-}
-
-export const fetchMonthlyTrend = (f: Filters = {}) =>
-  api.get<MonthPoint[]>(`/trend/monthly${qs(f)}`).then(r => r.data)
-
-// ── Yearly KPI ───────────────────────────────────────────────────────────────
-export interface YearlyKPI {
-  year:             number
-  total_offers:     number
-  total_jatak:      number
-  total_sold:       number
-  avg_basket_qty:   number
-  avg_basket_value: number
-  sell_through:     number
-  total_stores:     number
-  fb_pct:           number
-  sms_pct:          number
-  coop_pct:         number
-}
-
-export const fetchYearlyKPI = (store?: string) =>
-  api.get<YearlyKPI[]>(`/kpi/yearly${store ? `?store=${encodeURIComponent(store)}` : ''}`).then(r => r.data)
 
 // ── AI Ja Tak ────────────────────────────────────────────────────────────────
 
@@ -248,6 +201,50 @@ export interface OfferSearchResult {
 
 export const searchOffers = (q: string, limit = 10) =>
   api.get<OfferSearchResult[]>(`/inspiration/search?q=${encodeURIComponent(q)}&limit=${limit}`).then(r => r.data)
+
+// ── Churn (Butiksudvikling) ───────────────────────────────────────────────────
+
+export interface ChurnChain {
+  chain:             string
+  count:             number
+  total_opslag_2025: number
+  avg_jatak_2025:    number
+  ophoert_count:     number
+  pause_count:       number
+  hk_count:           number
+  ikke_aktive_count:  number
+  reelt_tabt_count:   number
+}
+
+export interface ChurnSummary {
+  total_active_2025:  number
+  total_offers_2025:  number
+  total_inactive:     number
+  ophoert_count:      number
+  pause_count:        number
+  hk_count:           number
+  ikke_aktive:        number
+  reelt_tabt:         number
+  new_stores_2026:    number
+  tabt_opslag_2025:   number
+  chains:             ChurnChain[]
+}
+
+export interface ChurnStore {
+  kardex_id:      string
+  name:           string
+  offer_count:    number
+  avg_jatak:      number
+  seneste_opslag: string
+  status:         'Ophørt' | 'Pause'
+  hk_opslag:      boolean
+}
+
+export const fetchChurnSummary = () =>
+  api.get<ChurnSummary>('/stores/churn/summary').then(r => r.data)
+
+export const fetchChurnStores = (chain: string) =>
+  api.get<ChurnStore[]>(`/stores/churn/stores?chain=${encodeURIComponent(chain)}`).then(r => r.data)
 
 // ── Legacy ───────────────────────────────────────────────────────────────────
 export interface KPI {

@@ -50,11 +50,7 @@ def get_weekly_trend(
             COUNT(*)                                                         AS offer_count,
             COALESCE(SUM(jatak_count), 0)                                   AS total_jatak,
             COALESCE(AVG(jatak_count), 0)                                   AS avg_jatak,
-            COALESCE(
-                SUM(total_sold) * 1.0 / NULLIF(SUM(total_orders), 0), 0
-            )                                                                AS avg_order_size,
-            COALESCE(SUM(total_sold) * 100.0 / NULLIF(SUM(initial_stock), 0), 0) AS sell_through,
-            COUNT(DISTINCT kardex_id)                                             AS active_stores
+            COUNT(DISTINCT kardex_id)                                        AS active_stores
         FROM jatak
         {w}
         GROUP BY 1
@@ -67,9 +63,7 @@ def get_weekly_trend(
             "offer_count":   int(r[1]),
             "total_jatak":   int(r[2]),
             "avg_jatak":     round(float(r[3]), 1),
-            "avg_order_size":  round(float(r[4] or 0), 2),
-            "sell_through":   round(float(r[5] or 0), 1),
-            "active_stores":  int(r[6]),
+            "active_stores":  int(r[4]),
         }
         for r in rows
     ]
@@ -84,46 +78,4 @@ def get_weekly_trend(
     return result
 
 
-@router.get("/monthly")
-def get_monthly_trend(
-    store:     Optional[str] = Query(None),
-    date_from: Optional[str] = Query(None),
-    date_to:   Optional[str] = Query(None),
-):
-    """Monthly trend — used for year-over-year comparison charts."""
-    conn = get_conn()
-    w = _where(store, date_from, date_to)
 
-    rows = conn.execute(f"""
-        SELECT
-            strftime(DATE_TRUNC('month', created_date), '%Y-%m')             AS month,
-            YEAR(created_date)                                               AS year,
-            MONTH(created_date)                                              AS month_num,
-            COUNT(*)                                                         AS offer_count,
-            COALESCE(SUM(jatak_count), 0)                                   AS total_jatak,
-            COALESCE(AVG(jatak_count), 0)                                   AS avg_jatak,
-            COALESCE(
-                SUM(total_sold) * 100.0 / NULLIF(SUM(initial_stock), 0), 0
-            )                                                                AS sell_through,
-            COUNT(DISTINCT kardex_id)                                        AS active_stores,
-            COALESCE(AVG(total_sold * price), 0)                            AS avg_revenue
-        FROM jatak
-        {w}
-        GROUP BY 1, 2, 3
-        ORDER BY 1
-    """).fetchall()
-
-    return [
-        {
-            "month":         r[0],
-            "year":          int(r[1]),
-            "month_num":     int(r[2]),
-            "offer_count":   int(r[3]),
-            "total_jatak":   int(r[4]),
-            "avg_jatak":     round(float(r[5]), 1),
-            "sell_through":  round(float(r[6] or 0), 1),
-            "active_stores": int(r[7]),
-            "avg_revenue":   round(float(r[8] or 0), 0),
-        }
-        for r in rows
-    ]

@@ -321,8 +321,6 @@ function TopTitlesPanel({ categories }: { categories: string[] }) {
 // ─── Search result card ──────────────────────────────────────────────────────
 
 function SearchResultCard({ r }: { r: OfferSearchResult }) {
-  const sellPct = r.initial_stock > 0 ? Math.round((r.total_sold / r.initial_stock) * 100) : null
-
   return (
     <div className="rounded-2xl border border-slate-700/40 bg-slate-800/50 px-5 py-4 space-y-2 hover:border-slate-600/60 transition-colors">
       <div className="flex items-start justify-between gap-3">
@@ -337,11 +335,6 @@ function SearchResultCard({ r }: { r: OfferSearchResult }) {
       <div className="flex flex-wrap items-center gap-2 pt-0.5">
         {r.price > 0 && (
           <span className="text-xs bg-slate-700/60 text-slate-300 px-2 py-0.5 rounded-lg">{r.price.toFixed(0)} kr</span>
-        )}
-        {r.total_sold > 0 && (
-          <span className="text-xs bg-blue-900/20 border border-blue-500/20 text-blue-300 px-2 py-0.5 rounded-lg">
-            {r.total_sold} solgt{sellPct !== null ? ` (${sellPct}%)` : ''}
-          </span>
         )}
         {r.category && (
           <span className="inline-flex items-center gap-1 text-xs bg-violet-900/20 border border-violet-500/20 text-violet-300 px-2 py-0.5 rounded-lg">

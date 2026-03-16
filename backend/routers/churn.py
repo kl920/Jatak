@@ -11,9 +11,9 @@ import openpyxl
 
 router = APIRouter(prefix="/api/stores/churn", tags=["churn"])
 
-# api_stores_list.xlsx lives one level above backend/
-_XLSX     = Path(__file__).parent.parent.parent / "data" / "api_stores_list.xlsx"
-_XLSX2026 = Path(__file__).parent.parent.parent / "data" / "active_stores_list_2026.xlsx"
+# api_stores_list.xlsx lives in backend/data/
+_XLSX     = Path(__file__).parent.parent / "data" / "api_stores_list.xlsx"
+_XLSX2026 = Path(__file__).parent.parent / "data" / "active_stores_list_2026.xlsx"
 
 _active_kardex_cache: set | None = None
 _active_2026_cache:   set | None = None

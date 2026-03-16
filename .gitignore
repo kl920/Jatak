@@ -5,18 +5,14 @@ backend/**/__pycache__/
 backend/*.log
 backend/uvicorn*.log
 
-# Data files (large binary — tracked by Git LFS)
+# Data files (large binary - tracked by Git LFS)
 backend/data/*.duckdb
 backend/data/*.duckdb.wal
-# Root data/ folder only (not frontend/public/data)
-/data/
-# Prevent gh-pages from ignoring dist/data
-!frontend/dist/data/
-!frontend/public/data/
 
 # Node
 frontend/node_modules/
 frontend/dist/
+frontend/.vite/
 
 # OS
 .DS_Store

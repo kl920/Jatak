@@ -5,7 +5,8 @@ backend/**/__pycache__/
 backend/*.log
 backend/uvicorn*.log
 
-# Data files (large binary - tracked by Git LFS)
+# Data files (large binary — never commit)
+backend/data/*.parquet
 backend/data/*.duckdb
 backend/data/*.duckdb.wal
 

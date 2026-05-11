@@ -231,3 +231,189 @@ def get_churn_stores(chain: str = Query(...)):
         }
         for r in rows
     ]
+
+
+@router.get("/period-analysis")
+def get_period_analysis(
+    date_from: str = Query(..., description="Period start (YYYY-MM-DD)"),
+    date_to: str = Query(..., description="Period end (YYYY-MM-DD)"),
+    chain: str | None = Query(None, description="Filter by chain (optional)"),
+):
+    """
+    Period-based activity analysis with Coop's 6-month inactivity definition.
+    
+    Returns:
+    - active_stores: Stores with ≥1 offer in period
+    - inactive_stores: Stores active before period but 0 offers in period
+    - new_stores: Stores with first-ever offer in period
+    - hk_stores: Inactive stores receiving HK push campaigns
+    - reelt_tabte: Inactive stores without HK support
+    - activity_rate: % of registered stores that are active
+    - inactive_list: Detailed list of inactive stores
+    """
+    conn = get_conn()
+    active_ids = _get_active_kardex()
+    active_2026 = _get_active_2026_kardex()
+    name_map = _get_store_name_map()
+    
+    # Build chain filter
+    if chain:
+        escaped_chain = chain.replace("'", "''")
+        chain_filter = f"AND store_name LIKE '{escaped_chain}%'"
+    else:
+        chain_filter = ""
+    
+    # Active stores in period
+    active_in_period = set(r[0] for r in conn.execute(f"""
+        SELECT DISTINCT kardex_id 
+        FROM jatak 
+        WHERE created_date >= '{date_from}' 
+          AND created_date <= '{date_to}'
+          {chain_filter}
+    """).fetchall())
+    
+    # All stores active before period
+    active_before = set(r[0] for r in conn.execute(f"""
+        SELECT DISTINCT kardex_id 
+        FROM jatak 
+        WHERE created_date < '{date_from}'
+          {chain_filter}
+    """).fetchall())
+    
+    # Inactive = was active before, but not in period
+    inactive_kids = active_before - active_in_period
+    
+    # New stores = first offer in period
+    if chain:
+        new_stores_kids = set()
+    else:
+        new_stores_kids = set(r[0] for r in conn.execute(f"""
+            SELECT kardex_id
+            FROM (
+                SELECT kardex_id, MIN(created_date) as first_date
+                FROM jatak
+                GROUP BY kardex_id
+            )
+            WHERE first_date >= '{date_from}' 
+              AND first_date <= '{date_to}'
+        """).fetchall())
+    
+    # Get details for inactive stores
+    inactive_details = []
+    if inactive_kids:
+        kid_list = ','.join(str(k) for k in inactive_kids)
+        rows = conn.execute(f"""
+            SELECT 
+                kardex_id,
+                ANY_VALUE(store_name) as store_name,
+                MAX(created_date) as last_offer_date,
+                COUNT(*) as historical_offers,
+                ROUND(AVG(jatak_count), 1) as avg_jatak
+            FROM jatak
+            WHERE kardex_id IN ({kid_list})
+              AND created_date < '{date_from}'
+            GROUP BY kardex_id
+            ORDER BY last_offer_date DESC
+        """).fetchall()
+        
+        for r in rows:
+            kid = int(r[0])
+            is_registered = kid in active_ids
+            has_hk = is_registered and (kid in active_2026)
+            
+            # Calculate days inactive (from last offer to period end)
+            from datetime import datetime
+            last_date = datetime.strptime(str(r[2]), '%Y-%m-%d')
+            period_end = datetime.strptime(date_to, '%Y-%m-%d')
+            days_inactive = (period_end - last_date).days
+            
+            inactive_details.append({
+                "kardex_id": str(kid),
+                "name": name_map.get(kid, str(r[1])),
+                "chain": _norm_chain(str(r[1])),
+                "last_offer_date": str(r[2]),
+                "days_inactive": days_inactive,
+                "months_inactive": round(days_inactive / 30.44, 1),
+                "historical_offers": int(r[3]),
+                "avg_jatak": float(r[4] or 0),
+                "is_registered": is_registered,
+                "has_hk": has_hk,
+                "status": "HK-support" if has_hk else ("Registreret" if is_registered else "Lukket"),
+            })
+    
+    # Calculate totals
+    hk_count = sum(1 for s in inactive_details if s["has_hk"])
+    registered_inactive = sum(1 for s in inactive_details if s["is_registered"])
+    closed_inactive = len(inactive_kids) - registered_inactive
+    reelt_tabte = registered_inactive - hk_count
+    
+    total_registered = len(active_in_period) + registered_inactive
+    activity_rate = round((len(active_in_period) / total_registered * 100), 1) if total_registered > 0 else 0.0
+    
+    # Calculate chain breakdown (only if no chain filter)
+    chain_breakdown = []
+    if not chain:
+        # Get all active stores with chain info
+        active_chain_data = conn.execute(f"""
+            SELECT kardex_id, ANY_VALUE(store_name) as store_name
+            FROM jatak
+            WHERE created_date >= '{date_from}' 
+              AND created_date <= '{date_to}'
+            GROUP BY kardex_id
+        """).fetchall()
+        
+        # Build chain stats
+        chain_stats = {}
+        for kid, sname in active_chain_data:
+            c = _norm_chain(str(sname))
+            if c not in chain_stats:
+                chain_stats[c] = {"active": 0, "pause": 0, "hk": 0, "reelt_tabte": 0}
+            chain_stats[c]["active"] += 1
+        
+        # Add inactive stores to chain stats
+        for s in inactive_details:
+            c = s["chain"]
+            if c not in chain_stats:
+                chain_stats[c] = {"active": 0, "pause": 0, "hk": 0, "reelt_tabte": 0}
+            
+            if s["is_registered"]:
+                chain_stats[c]["pause"] += 1
+                if s["has_hk"]:
+                    chain_stats[c]["hk"] += 1
+                else:
+                    chain_stats[c]["reelt_tabte"] += 1
+        
+        # Convert to list and calculate rates
+        for chain_name, stats in chain_stats.items():
+            total_reg = stats["active"] + stats["pause"]
+            rate = round((stats["active"] / total_reg * 100), 1) if total_reg > 0 else 0.0
+            chain_breakdown.append({
+                "chain": chain_name,
+                "active_stores": stats["active"],
+                "pause_stores": stats["pause"],
+                "hk_stores": stats["hk"],
+                "reelt_tabte": stats["reelt_tabte"],
+                "activity_rate": rate,
+            })
+        
+        # Sort by activity rate descending (best chains first)
+        chain_breakdown.sort(key=lambda x: x["activity_rate"], reverse=True)
+    
+    return {
+        "period": {
+            "date_from": date_from,
+            "date_to": date_to,
+        },
+        "kpis": {
+            "active_stores": len(active_in_period),
+            "pause_stores": registered_inactive,
+            "closed_stores": closed_inactive,
+            "new_stores": len(new_stores_kids),
+            "hk_stores": hk_count,
+            "reelt_tabte": reelt_tabte,
+            "activity_rate": activity_rate,
+        },
+        "chain_breakdown": chain_breakdown,
+        "inactive_list": inactive_details,
+    }
+

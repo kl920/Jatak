@@ -12,7 +12,19 @@ const Ctx = createContext<FilterCtx>({
 })
 
 export function FilterProvider({ children }: { children: ReactNode }) {
-  const [filters, setFilters] = useState<Filters>({})
+  // Default: 6 months back (Coop's inactive store definition)
+  const getDefaultDates = () => {
+    const today = new Date()
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(today.getMonth() - 6)
+    
+    return {
+      date_from: sixMonthsAgo.toISOString().split('T')[0],
+      date_to:   today.toISOString().split('T')[0]
+    }
+  }
+
+  const [filters, setFilters] = useState<Filters>(getDefaultDates())
   return <Ctx.Provider value={{ filters, setFilters }}>{children}</Ctx.Provider>
 }
 

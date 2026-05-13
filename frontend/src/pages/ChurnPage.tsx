@@ -1,7 +1,7 @@
 import { useState, ReactNode } from 'react'
 import { useQuery }            from '@tanstack/react-query'
 import {
-  Store, TrendingUp, Building2, TrendingDown, Activity, Users, Clipboard,
+  Store, TrendingUp, Building2, TrendingDown, Activity, Users,
 } from 'lucide-react'
 import {
   fetchPeriodAnalysis, PeriodInactiveStore, PeriodChainBreakdown,
@@ -32,71 +32,15 @@ function chainColor(chain: string) {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 function SummaryRow({
-  pause, closed, new_stores
+  active, pause, closed, new_stores
 }: {
-  pause: number; closed: number; new_stores: number
+  active: number; pause: number; closed: number; new_stores: number
 }) {
-  const registered = pause + new_stores + closed // Note: simplified for display
+  const total = active + pause + closed
   
   return (
     <div className="text-xs text-slate-500 text-center py-3 border-t border-slate-800/50">
-      {fmt(registered)} registrerede • {fmt(new_stores)} nye • {fmt(closed)} udgåede
-    </div>
-  )
-}
-
-function OperationsPanel({ reelt_tabte, chains }: { reelt_tabte: number; chains: PeriodChainBreakdown[] }) {
-  // Find all relevant chains
-  const discount365 = chains.find(c => c.chain === '365discount')
-  const brugseni = chains.find(c => c.chain === 'Brugseni Coop Grønland')
-  const kvickly = chains.find(c => c.chain === 'Kvickly')
-  const superbrugsen = chains.find(c => c.chain === 'Superbrugsen')
-  
-  const registered = chains.reduce((sum, c) => sum + c.active_stores + c.pause_stores, 0)
-  const percentage = registered > 0 ? (reelt_tabte / registered * 100).toFixed(1) : '0.0'
-  
-  return (
-    <div className="bg-slate-800/60 border border-slate-600 rounded-2xl p-5">
-      <div className="flex items-start gap-4">
-        <div className="flex-shrink-0">
-          <Clipboard size={24} className="text-blue-400" />
-        </div>
-        <div className="flex-1">
-          <h3 className="text-base font-semibold text-slate-200 mb-1">
-            Butikker til opfølgning: {fmt(reelt_tabte)}
-          </h3>
-          <p className="text-xs text-slate-400 mb-1">{percentage} % af registrerede butikker uden aktivitet i perioden.</p>
-          <p className="text-xs text-slate-300 mb-3">
-            Størst opfølgningsbehov ses i 365discount og Brugseni Coop Grønland.
-          </p>
-          <div className="space-y-1.5 text-sm text-slate-300">
-            {discount365 && (
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-500 flex-shrink-0" />
-                <span><span className="font-medium">365discount:</span> {fmt(discount365.reelt_tabte)} butikker</span>
-              </div>
-            )}
-            {brugseni && (
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-500 flex-shrink-0" />
-                <span><span className="font-medium">Brugseni Coop Grønland:</span> {fmt(brugseni.reelt_tabte)} butikker</span>
-              </div>
-            )}
-            {kvickly && kvickly.reelt_tabte === 0 && (
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                <span><span className="font-medium">Kvickly:</span> 0 butikker</span>
-              </div>
-            )}
-            {superbrugsen && superbrugsen.reelt_tabte === 0 && (
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
-                <span><span className="font-medium">Superbrugsen:</span> 0 butikker</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      {fmt(total)} i alt • {fmt(new_stores)} nye • {fmt(closed)} udgåede
     </div>
   )
 }
@@ -216,7 +160,7 @@ function ChainOverview({ chains }: { chains: PeriodChainBreakdown[] }) {
           {chains.map(chain => {
             const color = chainColor(chain.chain)
             const synlige = chain.active_stores + chain.hk_stores
-            const total = chain.active_stores + chain.pause_stores
+            const total = synlige + chain.reelt_tabte
             const coverage = total > 0 ? (synlige / total * 100) : 0
             const coverageColor = getCoverageColor(coverage)
             
@@ -296,8 +240,8 @@ export default function ChurnPage() {
         <div className="grid grid-cols-4 gap-4 p-4">
           <KpiCard
             label="Butikker med aktivitet"
-            value={fmtPct((kpis.active_stores + kpis.hk_stores) / (kpis.active_stores + kpis.pause_stores) * 100)}
-            sub={`${fmt(kpis.active_stores + kpis.hk_stores)} af ${fmt(kpis.active_stores + kpis.pause_stores)} butikker • Ja Tak, HK-støtte eller anden aktivitet`}
+            value={fmtPct((kpis.active_stores + kpis.hk_stores) / (kpis.active_stores + kpis.pause_stores + kpis.closed_stores) * 100)}
+            sub={`${fmt(kpis.active_stores + kpis.hk_stores)} af ${fmt(kpis.active_stores + kpis.pause_stores + kpis.closed_stores)} butikker • Ja Tak, HK-støtte eller anden aktivitet`}
             icon={<Users size={20} className="text-emerald-400" />}
             color="text-emerald-400"
           />
@@ -325,6 +269,7 @@ export default function ChurnPage() {
         </div>
         
         <SummaryRow
+          active={kpis.active_stores + kpis.hk_stores}
           pause={kpis.pause_stores}
           closed={kpis.closed_stores}
           new_stores={kpis.new_stores}
@@ -346,11 +291,6 @@ export default function ChurnPage() {
         </span>
       </div>
       
-      {/* Operations Panel */}
-      {kpis.reelt_tabte > 0 && (
-        <OperationsPanel reelt_tabte={kpis.reelt_tabte} chains={data.chain_breakdown} />
-      )}
-
       {/* Chain Overview */}
       {data.chain_breakdown.length > 0 && (
         <ChainOverview chains={data.chain_breakdown} />

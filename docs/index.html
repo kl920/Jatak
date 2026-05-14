@@ -12,11 +12,12 @@
   <body class="bg-gray-950">
     <div id="root"></div>
     <script>
-      // SPA redirect handler for GitHub Pages
+      // SPA redirect — v2 — GitHub Pages
       (function() {
         var r = sessionStorage.getItem('spa_redirect');
         if (r) { sessionStorage.removeItem('spa_redirect'); history.replaceState(null, '', '/Jatak' + r); }
       })();
-    </script>
+    </script>
+
   </body>
 </html>

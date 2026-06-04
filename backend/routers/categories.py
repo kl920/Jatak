@@ -44,7 +44,18 @@ def get_category_performance(
     date_from: Optional[str] = Query(None),
     date_to:   Optional[str] = Query(None),
 ):
-    """Category performance: avg_jatak, sell-through, offer count."""
+    """
+    Kategori-performance med engagement, salg og omsætning.
+    
+    Returnerer per kategori:
+    - offer_count: Antal tilbud
+    - total_jatak: Samlet antal "Ja Tak"
+    - avg_jatak: Gennemsnitligt "Ja Tak" per tilbud
+    - avg_price: Gennemsnitspris per tilbud (kr)
+    - avg_revenue: Gennemsnitsomsætning per tilbud (kr)
+    - total_sold: Samlet antal solgte varer
+    - conversion_rate: Salg i forhold til engagement (%)
+    """
     conn = get_conn()
     w = _where(store, date_from, date_to)
 
@@ -55,7 +66,8 @@ def get_category_performance(
             COALESCE(SUM(jatak_count), 0)                                        AS total_jatak,
             COALESCE(AVG(jatak_count), 0)                                        AS avg_jatak,
             COALESCE(AVG(price), 0)                                              AS avg_price,
-            COALESCE(AVG(total_sold * price), 0)                                AS avg_revenue
+            COALESCE(AVG(total_sold * price), 0)                                AS avg_revenue,
+            COALESCE(SUM(total_sold), 0)                                         AS total_sold
         FROM jatak
         {w}
         GROUP BY category
@@ -64,12 +76,14 @@ def get_category_performance(
 
     return [
         {
-            "category":    r[0],
-            "offer_count": int(r[1]),
-            "total_jatak": int(r[2]),
-            "avg_jatak":   round(float(r[3]), 1),
-            "avg_price":   round(float(r[4] or 0), 1),
-            "avg_revenue": round(float(r[5] or 0), 0),
+            "category":       r[0],
+            "offer_count":    int(r[1]),
+            "total_jatak":    int(r[2]),
+            "avg_jatak":      round(float(r[3]), 1),
+            "avg_price":      round(float(r[4] or 0), 1),
+            "avg_revenue":    round(float(r[5] or 0), 0),
+            "total_sold":     int(r[6]),
+            "conversion_rate": round((float(r[6]) / float(r[2]) * 100), 1) if r[2] and r[2] > 0 else 0.0,
         }
         for r in rows
     ]

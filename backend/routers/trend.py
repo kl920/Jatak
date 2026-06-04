@@ -78,4 +78,117 @@ def get_weekly_trend(
     return result
 
 
+@router.get("/test")
+def test_endpoint():
+    """Simple test endpoint."""
+    return {"status": "test endpoint works"}
+
+
+@router.get("/stores-inactive")
+def get_inactive_stores(
+    date_from: Optional[str] = Query(None),
+    date_to:   Optional[str] = Query(None),
+):
+    """
+    Butikker uden aktivitet i 90+ eller 180+ dage inden for valgt periode.
+    
+    Query params:
+    - date_from: Start dato for periode (YYYY-MM-DD eller DD/MM/YYYY)
+    - date_to: Slut dato for periode (YYYY-MM-DD eller DD/MM/YYYY)
+    
+    Returnerer:
+    - inactive_90d: Butikker uden tilbud i 90+ dage (count + liste)
+    - inactive_180d: Butikker uden tilbud i 180+ dage (count + liste)
+    
+    For hver butik:
+    - kardex_id: Unikt butiks-ID
+    - store_name: Butiksnavn
+    - last_active_date: Seneste tilbud oprettet
+    - days_inactive: Antal dage uden aktivitet
+    - historical_offers: Historisk antal tilbud
+    - avg_jatak: Gennemsnitligt engagement historisk
+    """
+    conn = get_conn()
+    date_from = _norm(date_from)
+    date_to = _norm(date_to)
+    
+    # Build WHERE clause for the period filter
+    period_filter = ""
+    if date_from and date_to:
+        period_filter = f"WHERE created_date BETWEEN '{date_from}' AND '{date_to}'"
+    elif date_from:
+        period_filter = f"WHERE created_date >= '{date_from}'"
+    elif date_to:
+        period_filter = f"WHERE created_date <= '{date_to}'"
+    
+    # Get last activity date for each store within the filtered period
+    query = f"""
+        WITH store_activity AS (
+            SELECT 
+                kardex_id,
+                store_name,
+                MAX(created_date) AS last_active_date,
+                COUNT(*) AS historical_offers,
+                COALESCE(AVG(jatak_count), 0) AS avg_jatak
+            FROM jatak
+            {period_filter}
+            GROUP BY kardex_id, store_name
+        ),
+        dataset_max AS (
+            SELECT MAX(created_date) AS max_date FROM jatak {period_filter}
+        ),
+        store_with_inactivity AS (
+            SELECT 
+                sa.kardex_id,
+                sa.store_name,
+                sa.last_active_date,
+                sa.historical_offers,
+                sa.avg_jatak,
+                CAST(DATE_DIFF('day', sa.last_active_date::DATE, (SELECT max_date FROM dataset_max)::DATE) AS INT) AS days_inactive
+            FROM store_activity sa
+        )
+        SELECT 
+            kardex_id,
+            store_name,
+            last_active_date,
+            historical_offers,
+            avg_jatak,
+            days_inactive
+        FROM store_with_inactivity
+        WHERE days_inactive >= 90
+        ORDER BY days_inactive DESC, historical_offers DESC
+    """
+    
+    rows = conn.execute(query).fetchall()
+    
+    inactive_90 = []
+    inactive_180 = []
+    
+    for r in rows:
+        store_data = {
+            "kardex_id": str(r[0]),
+            "store_name": r[1],
+            "last_active_date": r[2],
+            "days_inactive": int(r[5]),
+            "historical_offers": int(r[3]),
+            "avg_jatak": round(float(r[4]), 1),
+        }
+        
+        if r[5] >= 180:
+            inactive_180.append(store_data)
+        if r[5] >= 90:
+            inactive_90.append(store_data)
+    
+    return {
+        "inactive_90d": {
+            "count": len(inactive_90),
+            "stores": inactive_90[:50],  # Limit to top 50 for performance
+        },
+        "inactive_180d": {
+            "count": len(inactive_180),
+            "stores": inactive_180[:50],
+        },
+    }
+
+
 

@@ -9,22 +9,22 @@ import { useFilters } from '../context/FilterContext'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, accent = false }: {
-  label: string; value: string; sub?: string; accent?: boolean
+function StatCard({ label, value, description }: {
+  label: string; value: string; description: string
 }) {
   return (
-    <div className={`rounded-2xl p-5 border ${accent ? 'bg-blue-600/20 border-blue-500/40' : 'bg-slate-800 border-slate-700'}`}>
-      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">{label}</p>
-      <p className={`text-2xl font-bold ${accent ? 'text-blue-300' : 'text-slate-100'}`}>{value}</p>
-      {sub && <p className="text-xs text-slate-500 mt-1">{sub}</p>}
+    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 hover:border-slate-600 transition-colors">
+      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{label}</p>
+      <p className="text-3xl font-bold text-slate-100 mb-2">{value}</p>
+      <p className="text-sm text-slate-400 leading-snug">{description}</p>
     </div>
   )
 }
 
 function fmt(n: number) { return n.toLocaleString('da-DK') }
 function fmtDKK(n: number) {
-  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toLocaleString('da-DK', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mia. kr`
-  if (n >= 1_000_000)     return `${(n / 1_000_000).toLocaleString('da-DK', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} mio. kr`
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toLocaleString('da-DK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mia. kr`
+  if (n >= 1_000_000)     return `${(n / 1_000_000).toLocaleString('da-DK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} mio. kr`
   return `${n.toLocaleString('da-DK', { maximumFractionDigits: 0 })} kr`
 }
 
@@ -99,14 +99,72 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold text-slate-100">Dashboard</h1>
 
-      {/* ── KPI Stat cards ── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard label="Tilbud"          value={fmt(kpi.total_offers)} />
-        <StatCard label="Ja Tak"          value={fmt(kpi.total_jatak)} accent />
-        <StatCard label="Omsætning"       value={fmtDKK(kpi.total_turnover)} />
-        <StatCard label="Gns. kurv"       value={`${kpi.avg_basket_qty.toFixed(2)} stk`} sub="pr. ordre" accent />
-        <StatCard label="Gns. kurvværdi"  value={`${kpi.avg_basket_value.toFixed(0)} kr`} sub="pr. ordre" />
-        <StatCard label="Aktive butikker" value={fmt(kpi.total_stores)} />
+      {/* ── Quick info banner ── */}
+      <div className="bg-blue-900/20 border border-blue-700/30 rounded-xl px-5 py-4">
+        <div className="flex items-start gap-3">
+          <div className="text-blue-400 text-xl mt-0.5">💡</div>
+          <div className="text-sm text-slate-300 leading-relaxed">
+            <p className="font-semibold text-blue-300 mb-1">Sådan læser du tallene:</p>
+            <p>
+              <span className="font-medium text-slate-200">Oprettede tilbud</span> = antal Facebook-opslag · 
+              <span className="font-medium text-slate-200 ml-1">Ja Tak bestillinger</span> = gennemsnitlige kundebestillinger (engagement) · 
+              <span className="font-medium text-slate-200 ml-1">Ordrer gennemført</span> = faktiske ordrer på tværs af alle kanaler · 
+              <span className="font-medium text-slate-200 ml-1">Gns. kurvstørrelse</span> = antal varer per ordre. 
+              <span className="text-blue-300 ml-1">Tallene viser hele perioden du har valgt i filteret.</span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── KPI Cards (2 rows of 4) ── */}
+      <div className="space-y-4">
+        {/* Top row - Volumen & Engagement */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard 
+            label="Oprettede tilbud" 
+            value={fmt(kpi.total_offers)} 
+            description="Antal Ja Tak-tilbud oprettet i perioden"
+          />
+          <StatCard 
+            label="Ordrer gennemført" 
+            value={fmt(kpi.total_orders)} 
+            description="Total på tværs af FB, SMS og Coop"
+          />
+          <StatCard 
+            label="Varer solgt" 
+            value={fmt(kpi.total_sold)} 
+            description="Styk solgt på tværs af alle ordrer"
+          />
+          <StatCard 
+            label="Reach" 
+            value={fmt(kpi.total_reach || 0)} 
+            description="Estimeret antal personer nået på Facebook"
+          />
+        </div>
+
+        {/* Bottom row - Værdier & Performance */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard 
+            label="Samlet omsætning" 
+            value={fmtDKK(kpi.total_turnover)} 
+            description="Estimeret baseret på solgte varer"
+          />
+          <StatCard 
+            label="Gns. ordreværdi" 
+            value={`${kpi.avg_basket_value.toFixed(0)} kr`} 
+            description="Estimeret omsætning per ordre"
+          />
+          <StatCard 
+            label="Gns. kurvstørrelse" 
+            value={`${kpi.avg_basket_qty.toFixed(1)} stk`} 
+            description="Antal varer per ordre i gennemsnit"
+          />
+          <StatCard 
+            label="Aktive butikker" 
+            value={fmt(kpi.total_stores)} 
+            description="Butikker med mindst ét tilbud"
+          />
+        </div>
       </div>
 
       {/* ── Kanal-fordeling ── */}

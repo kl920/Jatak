@@ -6,6 +6,10 @@ import os
 import secrets
 import base64
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -27,6 +31,10 @@ app = FastAPI(
 # ── HTTP Basic Auth middleware ─────────────────────────────────────────────────
 @app.middleware("http")
 async def basic_auth_middleware(request: Request, call_next):
+    # Skip auth for local development - PasswordGate in frontend is sufficient
+    if os.getenv("SKIP_AUTH") == "true":
+        return await call_next(request)
+    
     # Health check is public (for uptime monitors)
     if request.url.path == "/health":
         return await call_next(request)

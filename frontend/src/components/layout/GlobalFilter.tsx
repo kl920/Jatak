@@ -21,6 +21,7 @@ export default function GlobalFilter() {
   function activeYear(): string | null {
     if (filters.date_from === '2024-01-01' && filters.date_to === '2024-12-31') return '2024'
     if (filters.date_from === '2025-01-01' && filters.date_to === '2025-12-31') return '2025'
+    if (filters.date_from === '2026-01-01' && filters.date_to === '2026-12-31') return '2026'
     if (!filters.date_from && !filters.date_to) return 'all'
     return null
   }
@@ -68,32 +69,38 @@ export default function GlobalFilter() {
       </select>
 
       {/* Date from */}
-      <input
-        type="date"
-        value={filters.date_from ?? (range?.date_min ?? '')}
-        min={range?.date_min}
-        max={range?.date_max}
-        onChange={e => {
-          const v = e.target.value
-          setFilters({ ...filters, date_from: v || undefined })
-        }}
-        className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
-      />
+      <div className="relative">
+        <input
+          type="date"
+          value={filters.date_from ?? ''}
+          min={range?.date_min}
+          max={range?.date_max}
+          onChange={e => {
+            const v = e.target.value
+            setFilters({ ...filters, date_from: v || undefined })
+          }}
+          className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer hover:border-slate-600 transition-colors"
+          style={{ colorScheme: 'dark' }}
+        />
+      </div>
 
       <span className="text-slate-500 text-sm">→</span>
 
       {/* Date to */}
-      <input
-        type="date"
-        value={filters.date_to ?? (range?.date_max ?? '')}
-        min={range?.date_min}
-        max={range?.date_max}
-        onChange={e => {
-          const v = e.target.value
-          setFilters({ ...filters, date_to: v || undefined })
-        }}
-        className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500"
-      />
+      <div className="relative">
+        <input
+          type="date"
+          value={filters.date_to ?? ''}
+          min={range?.date_min}
+          max={range?.date_max}
+          onChange={e => {
+            const v = e.target.value
+            setFilters({ ...filters, date_to: v || undefined })
+          }}
+          className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer hover:border-slate-600 transition-colors"
+          style={{ colorScheme: 'dark' }}
+        />
+      </div>
 
       {/* Reset */}
       {active && (

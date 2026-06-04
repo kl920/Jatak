@@ -14,6 +14,10 @@ Start-Sleep 1
 
 # Start backend
 Write-Host ">> Backend (port 8000)..." -ForegroundColor Green
+
+# Set environment variable to skip auth for local development
+$env:SKIP_AUTH = "true"
+
 Start-Process -NoNewWindow -FilePath $python `
     -ArgumentList "-m","uvicorn","main:app","--port","8000" `
     -WorkingDirectory $backend `

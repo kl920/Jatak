@@ -1,12 +1,18 @@
 import { useState, FormEvent } from 'react'
+import { setCredentials } from '../api/client'
 
 const EXPECTED_USER = 'Coop'
 const EXPECTED_PASS = 'Jatak12+'
 
 export default function PasswordGate({ children }: { children: React.ReactNode }) {
-  const [authed, setAuthed] = useState(
-    () => sessionStorage.getItem('jatak_auth') === '1'
-  )
+  const [authed, setAuthed] = useState(() => {
+    try {
+      return localStorage.getItem('jatak_auth') === '1'
+    } catch {
+      // localStorage fails in InPrivate/Incognito mode - use session state instead
+      return false
+    }
+  })
   const [error, setError] = useState(false)
 
   if (authed) return <>{children}</>
@@ -17,7 +23,14 @@ export default function PasswordGate({ children }: { children: React.ReactNode }
     const user = (fd.get('user') as string).trim()
     const pass = fd.get('pass') as string
     if (user === EXPECTED_USER && pass === EXPECTED_PASS) {
-      sessionStorage.setItem('jatak_auth', '1')
+      // Configure API client with credentials for all requests
+      setCredentials(user, pass)
+      
+      try {
+        localStorage.setItem('jatak_auth', '1')
+      } catch {
+        // localStorage not available, but auth still succeeds in memory
+      }
       setAuthed(true)
     } else {
       setError(true)

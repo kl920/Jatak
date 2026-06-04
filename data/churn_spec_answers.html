@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Store Activity Dashboard — Spec Q&A</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f6f9;
+      color: #1a1a2e;
+      line-height: 1.65;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 40px 48px 36px;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.3px; }
+    header p  { margin-top: 6px; color: #9ba5b4; font-size: 0.92rem; }
+    header .meta { margin-top: 14px; display: flex; gap: 24px; font-size: 0.83rem; }
+    header .meta span { background: #2d3552; padding: 4px 12px; border-radius: 20px; color: #c5cce0; }
+
+    main { max-width: 860px; margin: 40px auto; padding: 0 24px 80px; }
+
+    .section-block {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 18px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .section-header .badge {
+      background: #4a5568;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      color: #a0aec0;
+      white-space: nowrap;
+    }
+    .section-header h2 { font-size: 1.05rem; font-weight: 600; }
+
+    .section-desc {
+      padding: 20px 28px;
+      background: #f8f9fc;
+      border-bottom: 1px solid #e8ecf2;
+      font-size: 0.87rem;
+      color: #4a5568;
+    }
+
+    .qa-block {
+      padding: 24px 28px;
+      border-bottom: 1px solid #edf0f5;
+    }
+    .qa-block:last-child { border-bottom: none; }
+
+    .question {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    .q-num {
+      background: #e8ecf7;
+      color: #3d5a99;
+      font-weight: 700;
+      font-size: 0.78rem;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .question-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #2d3748;
+    }
+
+    .answer-box {
+      margin-left: 42px;
+      background: #f0f7f0;
+      border-left: 4px solid #38a169;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+    }
+    .answer-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #38a169;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .answer-decision {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1a202c;
+      margin-bottom: 10px;
+    }
+    .answer-rationale {
+      font-size: 0.88rem;
+      color: #4a5568;
+    }
+    .answer-rationale p { margin-bottom: 8px; }
+    .answer-rationale p:last-child { margin-bottom: 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.84rem;
+    }
+    th {
+      background: #e2e8f0;
+      text-align: left;
+      padding: 8px 12px;
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #edf0f5;
+      color: #4a5568;
+    }
+    tr:last-child td { border-bottom: none; }
+    .badge-hk    { background: #bee3f8; color: #2b6cb0; padding: 2px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; }
+    .badge-pause { background: #fefcbf; color: #744210; padding: 2px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; }
+    .badge-lukket { background: #fed7d7; color: #9b2335; padding: 2px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; }
+
+    .note-box {
+      margin-left: 42px;
+      margin-top: 10px;
+      background: #fffbeb;
+      border-left: 4px solid #d69e2e;
+      border-radius: 0 8px 8px 0;
+      padding: 12px 16px;
+      font-size: 0.83rem;
+      color: #744210;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #a0aec0;
+      margin-top: 48px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Store Activity Dashboard — Design Q&amp;A</h1>
+  <p>Answers to open specification questions from <code>churn_final.docx</code></p>
+  <div class="meta">
+    <span>Jatak / Coop</span>
+    <span>May 28, 2026</span>
+    <span>3 sections · 5 questions</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ───────────────────────────────────────────── SECTION 1 -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="badge">Section 1</div>
+      <h2>KPI Summary Cards</h2>
+    </div>
+    <div class="section-desc">
+      Top-level snapshot for the selected date range and chain filter:
+      <strong>Butikker med aktivitet</strong>, <strong>JA TAK-AKTIVE</strong>,
+      <strong>ANDEN AKTIVITET</strong>, <strong>TIL OPFØLGNING</strong>,
+      and a footer strip with totals / new / exited stores.
+    </div>
+
+    <!-- Q1 -->
+    <div class="qa-block">
+      <div class="question">
+        <div class="q-num">1</div>
+        <div class="question-text">
+          Should <em>TIL OPFØLGNING</em> include stores that have an HQ push but no self-check,
+          or only stores with zero activity of any kind?
+        </div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-label">Decision</div>
+        <div class="answer-decision">TIL OPFØLGNING = zero activity of any kind only.</div>
+        <div class="answer-rationale">
+          <p>
+            Stores that received an HQ push are already being <em>reached</em> by headquarters —
+            they are not truly dark, just passive. They belong in the
+            <strong>ANDEN AKTIVITET</strong> card and are flagged as <em>HK-opslag</em>
+            in Section 3.
+          </p>
+          <p>
+            Mixing them into TIL OPFØLGNING inflates the follow-up number and sends sales
+            teams after stores that HQ is already touching. Keep the two signals clean:
+            ANDEN AKTIVITET = HQ reach, TIL OPFØLGNING = truly unreachable.
+          </p>
+          <p>
+            <strong>Current data reference:</strong> 52 stores have HQ push / no self-check;
+            26 stores have zero activity of any kind. The distinction matters operationally.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="qa-block">
+      <div class="question">
+        <div class="q-num">2</div>
+        <div class="question-text">
+          If a brand-new store does its first self-check in this period, should it count
+          in the main active total or only in the <em>new stores</em> footer strip?
+        </div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-label">Decision</div>
+        <div class="answer-decision">Count in both — main active total AND the new-stores footer strip.</div>
+        <div class="answer-rationale">
+          <p>
+            A store that performs a self-check <em>is</em> an active store, regardless of
+            history. Excluding it from JA TAK-AKTIVE would artificially depress the
+            activity rate.
+          </p>
+          <p>
+            The footer strip provides the additive context (growth signal) without
+            replacing the primary KPI. New stores should never be subtracted from the
+            headline numbers.
+          </p>
+        </div>
+      </div>
+      <div class="note-box">
+        <strong>Note:</strong> There are currently only 3 brand-new stores in 2026 with no
+        2025 history — a low number with negligible statistical impact either way,
+        but the principle should be codified consistently.
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ───────────────────────────────────────────── SECTION 2 -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="badge">Section 2</div>
+      <h2>Chain Breakdown Table</h2>
+    </div>
+    <div class="section-desc">
+      No open questions. The agreed logic: TOTAL AKTIVE = EGNE OPSLAG ∪ VIA HK (deduplicated).
+      TIL OPFØLGNING per chain = registered stores with zero self-check and zero HQ push.
+      DÆKNING = total_with_activity ÷ total_registered × 100, sorted descending.
+    </div>
+  </div>
+
+
+  <!-- ───────────────────────────────────────────── SECTION 3 -->
+  <div class="section-block">
+    <div class="section-header">
+      <div class="badge">Section 3</div>
+      <h2>Inactive Store Detail List</h2>
+    </div>
+    <div class="section-desc">
+      Shows only stores with a self-check history before the window but silent within it.
+      Status badges: <span class="badge-hk">HK-opslag</span>
+      <span class="badge-pause">Pause</span>
+      <span class="badge-lukket">Lukket</span>
+    </div>
+
+    <!-- Q1 -->
+    <div class="qa-block">
+      <div class="question">
+        <div class="q-num">1</div>
+        <div class="question-text">
+          Inactivity is currently tied to the selected date range — a store silent for
+          just one week appears here. Should a fixed threshold (e.g. 3 or 6 months)
+          be used instead?
+        </div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-label">Decision</div>
+        <div class="answer-decision">Yes — use a 3-month minimum inactivity threshold to appear in Section 3.</div>
+        <div class="answer-rationale">
+          <p>
+            The date range selector controls the <em>analysis window</em>, but Section 3
+            should only surface stores that have been silent for at least <strong>3 months
+            up to the selected end date</strong>. A store that skipped a single week during
+            a campaign break is operational noise, not churn.
+          </p>
+          <p>
+            3 months aligns with Coop's operational cadence and is a practical threshold
+            for meaningful sales outreach. A <strong>6-month mark</strong> can be used as
+            a secondary visual signal (e.g. darker status badge colour) to indicate deeper
+            concern without changing the core filter.
+          </p>
+          <p>
+            <strong>Suggested implementation:</strong> filter
+            <code>MÅNEDER_INAKTIV &gt;= 3</code> in the query. Stores below this threshold
+            are excluded from Section 3 entirely.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="qa-block">
+      <div class="question">
+        <div class="q-num">2</div>
+        <div class="question-text">
+          For the <span class="badge-pause">Pause</span> status, should we check
+          inactivity only within the date range or look at all-time activity?
+          The HIST. OPSLAG column hints that past value matters.
+        </div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-label">Decision</div>
+        <div class="answer-decision">Split approach: badge from date range; MÅNEDER INAKTIV from all-time last check.</div>
+        <div class="answer-rationale">
+          <p>
+            The <strong>Pause badge</strong> is assigned based on the selected date window
+            (no self-check within that period). This keeps badge logic consistent with the
+            rest of the dashboard filters.
+          </p>
+          <p>
+            However, <strong>MÅNEDER INAKTIV</strong> must always be calculated from the
+            store's actual <code>seneste_opslag</code> date — not from the start of the
+            selected window. This means: even if you select a 1-month window, you will
+            still see that a store has been silent for 14 months in total.
+          </p>
+          <p>
+            This gives sales teams the correct prioritisation signal:
+            <strong>high HIST. OPSLAG + long MÅNEDER INAKTIV = highest win-back priority</strong>,
+            regardless of which window is selected.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="qa-block">
+      <div class="question">
+        <div class="q-num">3</div>
+        <div class="question-text">
+          A <span class="badge-lukket">Lukket</span> store is flagged purely because it is
+          missing from the current store registry. If it still received an HQ push in the
+          period, should it stay <em>Lukket</em> or be reclassified?
+        </div>
+      </div>
+      <div class="answer-box">
+        <div class="answer-label">Decision</div>
+        <div class="answer-decision">Reclassify to HK-opslag if the store received an HQ push in the period.</div>
+        <div class="answer-rationale">
+          <p>
+            An HQ push is an implicit signal that headquarters considers the store
+            operational. Marking it <em>Lukket</em> at the same time creates a
+            contradiction and risks removing it from the sales follow-up list while
+            HQ is still actively targeting it.
+          </p>
+          <p>
+            The registry may simply lag behind operational reality. Status resolution
+            priority should be:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>In registry?</th>
+                <th>HQ push in period?</th>
+                <th>Self-check in period?</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>No</td><td>Yes</td><td>No</td><td><span class="badge-hk">HK-opslag</span></td></tr>
+              <tr><td>No</td><td>No</td><td>No</td><td><span class="badge-lukket">Lukket</span></td></tr>
+              <tr><td>Yes</td><td>Yes</td><td>No</td><td><span class="badge-hk">HK-opslag</span></td></tr>
+              <tr><td>Yes</td><td>No</td><td>No</td><td><span class="badge-pause">Pause</span></td></tr>
+            </tbody>
+          </table>
+          <p style="margin-top:12px;">
+            This ensures <em>Lukket</em> is reserved for stores with truly no signal
+            of any kind — not even an HQ content push.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /section 3 -->
+
+</main>
+
+<footer>
+  Jatak Dashboard · Coop · Internal specification review · May 2026
+</footer>
+
+</body>
+</html>

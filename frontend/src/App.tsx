@@ -7,6 +7,7 @@ import DashboardPage   from './pages/DashboardPage'
 import CategoriesPage  from './pages/CategoriesPage'
 import AIJatakPage        from './pages/AIJatakPage'
 import ButiksuniversPage  from './pages/ButiksuniversPage'
+import ButikDashboardPage from './pages/ButikDashboardPage'
 import ChurnPage          from './pages/ChurnPage'
 
 const IS_STATIC = import.meta.env.VITE_STATIC === 'true'
@@ -28,6 +29,7 @@ function Shell() {
               <Route path="/"           element={<DashboardPage />}  />
               <Route path="/kategorier" element={<CategoriesPage />} />
               <Route path="/butiksudvikling"    element={<ChurnPage />}         />
+              <Route path="/butiksoverblik"     element={<ButikDashboardPage />} />
               <Route path="/butiksunivers"      element={<ButiksuniversPage />} />
               <Route path="/ai-jatak"          element={<AIJatakPage />}       />
             </Routes>

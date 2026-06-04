@@ -2,6 +2,30 @@ import axios from 'axios'
 
 export const api = axios.create({ baseURL: '/api' })
 
+// Store credentials and configure axios to send Basic Auth header
+let authHeader = ''
+
+export function setCredentials(username: string, password: string) {
+  authHeader = 'Basic ' + btoa(username + ':' + password)
+}
+
+// Initialize auth if user was previously logged in
+try {
+  if (localStorage.getItem('jatak_auth') === '1') {
+    setCredentials('Coop', 'Jatak12+')
+  }
+} catch {
+  // localStorage not available (InPrivate mode) - auth will be set on login
+}
+
+// Add interceptor to include auth header on every request
+api.interceptors.request.use((config) => {
+  if (authHeader) {
+    config.headers.Authorization = authHeader
+  }
+  return config
+})
+
 // ── Filter params ────────────────────────────────────────────────────────────
 export interface Filters {
   store?: string
@@ -39,6 +63,7 @@ export interface KPISummary {
   total_jatak:     number
   total_sold:      number
   total_turnover:  number
+  total_reach?:    number
   avg_basket_qty:   number
   avg_basket_value: number
   total_stores:    number
@@ -48,6 +73,7 @@ export interface KPISummary {
   fb_orders:       number
   sms_orders:      number
   coop_orders:     number
+  total_orders:    number
 }
 
 export const fetchKPISummary = (f: Filters = {}) =>
@@ -72,6 +98,29 @@ export interface WeekPoint {
 export const fetchWeeklyTrend = (f: Filters = {}) =>
   api.get<WeekPoint[]>(`/trend/weekly${qs(f)}`).then(r => r.data)
 
+export interface InactiveStore {
+  kardex_id:         string
+  store_name:        string
+  last_active_date:  string
+  days_inactive:     number
+  historical_offers: number
+  avg_jatak:         number
+}
+
+export interface InactiveStoresResponse {
+  inactive_90d: {
+    count: number
+    stores: InactiveStore[]
+  }
+  inactive_180d: {
+    count: number
+    stores: InactiveStore[]
+  }
+}
+
+export const fetchInactiveStores = (f: Filters = {}) =>
+  api.get<InactiveStoresResponse>('/trend/stores-inactive' + qs(f)).then(r => r.data)
+
 // ── Stores ───────────────────────────────────────────────────────────────────
 export interface StoreRank {
   kardex_id:      string
@@ -88,12 +137,14 @@ export const fetchStoreRanking = (f: Filters = {}, limit = 20) =>
 
 // ── Categories ───────────────────────────────────────────────────────────────
 export interface CategoryPerf {
-  category:    string
-  offer_count: number
-  total_jatak: number
-  avg_jatak:   number
-  avg_price:   number
-  avg_revenue: number
+  category:         string
+  offer_count:      number
+  total_jatak:      number
+  avg_jatak:        number
+  avg_price:        number
+  avg_revenue:      number
+  total_sold:       number
+  conversion_rate:  number
 }
 
 export interface PricePoint {
@@ -246,4 +297,53 @@ export const fetchChurnSummary = () =>
 export const fetchChurnStores = (chain: string) =>
   api.get<ChurnStore[]>(`/stores/churn/stores?chain=${encodeURIComponent(chain)}`).then(r => r.data)
 
+// Period-based analysis (Coop 6-month definition)
+export interface PeriodInactiveStore {
+  kardex_id:          string
+  name:               string
+  chain:              string
+  last_offer_date:    string
+  days_inactive:      number
+  months_inactive:    number
+  historical_offers:  number
+  avg_jatak:          number
+  is_registered:      boolean
+  has_hk:             boolean
+  status:             string
+}
+
+export interface PeriodChainBreakdown {
+  chain:          string
+  active_stores:  number
+  pause_stores:   number
+  hk_stores:      number
+  reelt_tabte:    number
+  activity_rate:  number
+}
+
+export interface PeriodAnalysis {
+  period: {
+    date_from: string
+    date_to:   string
+  }
+  kpis: {
+    active_stores:  number
+    pause_stores:   number
+    closed_stores:  number
+    new_stores:     number
+    hk_stores:      number
+    reelt_tabte:    number
+    activity_rate:  number
+  }
+  chain_breakdown: PeriodChainBreakdown[]
+  inactive_list: PeriodInactiveStore[]
+}
+
+export const fetchPeriodAnalysis = (filters: Filters, chain?: string) => {
+  const params = new URLSearchParams()
+  params.append('date_from', filters.date_from || '')
+  params.append('date_to', filters.date_to || '')
+  if (chain) params.append('chain', chain)
+  return api.get<PeriodAnalysis>(`/stores/churn/period-analysis?${params}`).then(r => r.data)
+}
 

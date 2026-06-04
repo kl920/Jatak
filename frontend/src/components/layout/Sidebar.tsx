@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Tag, Sparkles, ShoppingBag, Activity } from 'lucide-react'
+import { LayoutDashboard, Tag, Sparkles, ShoppingBag, Activity, Store } from 'lucide-react'
 import clsx from 'clsx'
 
 const links = [
   { to: '/',                icon: LayoutDashboard, label: 'Dashboard',        group: 'analyse' },
   { to: '/kategorier',      icon: Tag,             label: 'Kategorier',       group: 'analyse' },
   { to: '/butiksudvikling', icon: Activity,        label: 'Butiksudvikling',  group: 'analyse' },
+  { to: '/butiksoverblik',  icon: Store,           label: 'Butiksoverblik',   group: 'butik'   },
   { to: '/butiksunivers',   icon: ShoppingBag,     label: 'Butiksunivers',    group: 'butik'   },
   { to: '/ai-jatak',        icon: Sparkles,        label: 'AI Ja Tak',        group: 'butik'   },
 ]

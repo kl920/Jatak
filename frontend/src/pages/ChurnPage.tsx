@@ -269,7 +269,7 @@ export default function ChurnPage() {
         </div>
         
         <SummaryRow
-          active={kpis.active_stores + kpis.hk_stores}
+          active={kpis.active_stores}
           pause={kpis.pause_stores}
           closed={kpis.closed_stores}
           new_stores={kpis.new_stores}
@@ -280,8 +280,8 @@ export default function ChurnPage() {
       <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl px-5 py-3 text-sm text-slate-300">
         <span className="text-emerald-400 font-semibold">
           {data.chain_breakdown.filter(c => {
-            const total = c.active_stores + c.pause_stores
             const synlige = c.active_stores + c.hk_stores
+            const total = synlige + c.reelt_tabte
             return total > 0 && (synlige / total * 100) >= 90
           }).length} af {data.chain_breakdown.length} kæder har over 90 % butikker med aktivitet
         </span>
@@ -298,7 +298,7 @@ export default function ChurnPage() {
 
       {/* Context */}
       <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl px-5 py-3 text-sm text-slate-300 leading-relaxed">
-        <span className="font-semibold text-emerald-400">{fmtPct((kpis.active_stores + kpis.hk_stores) / (kpis.active_stores + kpis.pause_stores) * 100)}</span> af registrerede butikker har aktivitet i perioden.
+        <span className="font-semibold text-emerald-400">{fmtPct((kpis.active_stores + kpis.hk_stores) / (kpis.active_stores + kpis.pause_stores + kpis.closed_stores) * 100)}</span> af registrerede butikker har aktivitet i perioden.
         {' '}
         <span className="text-slate-400">{fmt(kpis.reelt_tabte)} butikker er til opfølgning.</span>
       </div>

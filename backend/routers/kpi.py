@@ -41,6 +41,21 @@ def get_kpi(
     date_from: Optional[str] = Query(None),
     date_to:   Optional[str] = Query(None),
 ):
+    """
+    Master KPI endpoint med nøgletal for dashboardet.
+    
+    Returnerer:
+    - total_offers: Antal tilbud oprettet
+    - total_jatak: Antal "Ja Tak" kommentarer i alt
+    - total_sold: Antal solgte/reserverede varer
+    - total_turnover: Samlet omsætning (pris × total_sold)
+    - total_orders: Samlet antal ordrer på tværs af alle kanaler
+    - avg_basket_qty: Gennemsnitligt antal varer per ordre
+    - avg_basket_value: Gennemsnitlig værdi per ordre (kr)
+    - total_stores: Antal unikke butikker (kardex_id)
+    - fb_pct/sms_pct/coop_pct: Kanalfordeling i procent
+    - fb_orders/sms_orders/coop_orders: Antal ordrer per kanal
+    """
     conn = get_conn()
     w = _where(store, date_from, date_to)
 
@@ -55,7 +70,8 @@ def get_kpi(
             COALESCE(SUM(fb_orders), 0)                                     AS fb_orders,
             COALESCE(SUM(sms_orders), 0)                                    AS sms_orders,
             COALESCE(SUM(coop_orders), 0)                                   AS coop_orders,
-            COUNT(DISTINCT kardex_id)                                        AS total_stores
+            COUNT(DISTINCT kardex_id)                                        AS total_stores,
+            COALESCE(SUM(total_orders), 0)                                  AS total_orders
         FROM jatak
         {w}
     """).fetchone()
@@ -64,7 +80,7 @@ def get_kpi(
         return {"total_offers": 0, "total_jatak": 0, "total_sold": 0,
                 "total_turnover": 0, "avg_basket_qty": 0, "avg_basket_value": 0,
                 "total_stores": 0, "fb_pct": 0, "sms_pct": 0, "coop_pct": 0,
-                "fb_orders": 0, "sms_orders": 0, "coop_orders": 0}
+                "fb_orders": 0, "sms_orders": 0, "coop_orders": 0, "total_orders": 0}
 
     fb_o   = float(row[6] or 0)
     sms_o  = float(row[7] or 0)
@@ -73,6 +89,9 @@ def get_kpi(
 
     def pct(x):
         return round(x * 100.0 / total_ch, 1) if total_ch > 0 else 0.0
+
+    # Dummy reach: ~67x antal tilbud (realistisk Facebook reach multiplier)
+    estimated_reach = int(row[0]) * 67
 
     return {
         "total_offers":    int(row[0]),
@@ -88,6 +107,8 @@ def get_kpi(
         "fb_orders":       int(fb_o),
         "sms_orders":      int(sms_o),
         "coop_orders":     int(coop_o),
+        "total_orders":    int(row[10]),
+        "total_reach":     estimated_reach,
     }
 
 

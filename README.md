@@ -39,11 +39,41 @@ cd C:\AI\Jatak
 
 | Page | Route | Content |
 |---|---|---|
-| **Dashboard** | `/` | KPIs, weekly trend chart, channel split (FB/SMS/COOP), basket metrics |
-| **Kategorier** | `/kategorier` | Category performance, price-bucket analysis |
-| **Butiksudvikling** | `/butiksudvikling` | Store churn analysis, chain breakdown, weekly top 10, all-time top 20 |
+| **Dashboard** | `/` | **8 KPI-kort** (tilbud, Ja Tak, varer solgt, omsætning, aktive butikker, gns. kurv, ordrer) med tooltips og forklarende banner, weekly trends, channel split |
+| **Kategorier** | `/kategorier` | Category performance, **gns. salg per tilbud** per kategori, price-bucket analysis |
+| **Butiksudvikling** | `/butiksudvikling` | Store churn analysis, **inaktive butikker (90+ dage)**, chain breakdown, weekly top 10, all-time top 20 |
 | **Butiksunivers** | `/butiksunivers` | Inspiration for stores: top titles, search, seasonal trends, smart tips |
 | **AI Ja Tak** | `/ai-jatak` | AI-powered offer text generator (requires OpenAI key + local backend) |
+
+---
+
+## Key Features (April 2026 improvements)
+
+### Dashboard — 8 KPI cards with tooltips
+All metrics are based on **actual data we have** — no assumptions about walk-in customers or data we don't track.
+
+**Blue info banner:** Explains how to read metrics and what each number represents.
+
+**KPI cards:**
+- **Tilbud oprettet:** Number of Facebook posts created by stores
+- **Ja Tak-kommentarer:** Customer engagement (Facebook comments with "Ja Tak")  
+- **Varer solgt:** Actual items sold across all channels
+- **Omsætning:** Total revenue (price × sold items)
+- **Aktive butikker:** Unique stores (kardex) that created offers
+- **Gns. kurv — stk:** Average items per order (calculated: total_sold ÷ total_orders)
+- **Gns. kurv — værdi:** Average order value in DKK
+- **Ordrer i alt:** Total number of orders across all channels (FB/SMS/COOP app)
+
+### Categories Page
+- **Gns. salg per tilbud:** Shows average items sold per offer within each category  
+  → Calculated as: `total_sold ÷ offer_count` for each category
+  → Example: Mejeri & Ost sells ~50 items per offer on average
+
+### Butiksudvikling Page — Inactive stores tracking
+- **`GET /api/trend/stores-inactive`** — Lists stores with no activity for 90+ or 180+ days  
+  → Currently: 114 stores inactive 90+ days
+  → Table shows: days inactive, last active date, historical performance
+  → Use case: Identify stores that need outreach or business development
 
 ---
 

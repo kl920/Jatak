@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI-driftsomkostninger — Ja Tak 2.0</title>
+<style>
+  :root{
+    --ink:#1a1a1a;
+    --licorice:#333333;
+    --sand:#F8F7F4;
+    --gallery:#EBEBEB;
+    --muted:#6b7280;
+    --line:#e4e8ec;
+    --bg:#f4f5f7;
+    --card:#ffffff;
+    --accent:#0a7d4b;
+    --accent-soft:#e8f4ee;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.6 Inter,"Segoe UI",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:40px 0 34px}
+  .eyebrow{display:inline-block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);background:var(--accent-soft);padding:6px 12px;border-radius:99px;font-weight:700}
+  h1{font-size:34px;line-height:1.15;margin:16px 0 8px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:17px;margin:0;max-width:600px}
+
+  section{padding:38px 0}
+  section + section{border-top:1px solid var(--line)}
+  h2{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 18px;font-weight:700}
+  p{margin:0 0 12px}
+  .tight{margin-bottom:0}
+
+  /* Faksimile af pitch deck */
+  .facsimile{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .fac-cap{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:14px}
+  .total-bar{background:linear-gradient(135deg,#1a1a2e,var(--licorice));border-radius:14px;padding:20px 26px;
+    display:flex;align-items:center;justify-content:space-between;color:#fff;gap:16px}
+  .total-label{font-size:15px;font-weight:600}
+  .total-note{font-size:12px;opacity:.5}
+  .total-num{font-size:30px;font-weight:900;white-space:nowrap}
+  .total-num span{font-size:15px;font-weight:500;opacity:.5}
+  .ai-cost-note{display:flex;gap:14px;align-items:center;background:var(--sand);border:2px solid var(--gallery);
+    border-radius:14px;padding:16px 22px;margin-top:14px;font-size:13.5px;line-height:1.5;color:var(--licorice)}
+  .ai-cost-icon{font-size:22px}
+  .src{font-size:13px;color:var(--muted);margin-top:14px}
+  .src a{color:var(--accent)}
+
+  .also{margin-top:18px;display:grid;gap:8px}
+  .also div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 16px;font-size:14.5px}
+  .also b{color:var(--accent)}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .num{font-size:27px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:5px}
+  .num small{font-size:14px;font-weight:600;color:var(--muted)}
+  .lbl{color:var(--muted);font-size:13.5px;line-height:1.45}
+  .down{color:var(--accent);font-weight:600;font-size:13px;margin-top:8px}
+
+  /* Løsningsboks */
+  .solution{background:var(--card);border:2px solid var(--accent);border-radius:16px;overflow:hidden}
+  .sol-head{background:var(--accent);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .sol-head h3{margin:0;font-size:19px;letter-spacing:-.01em}
+  .sol-price{font-size:26px;font-weight:800;white-space:nowrap}
+  .sol-price span{font-size:14px;font-weight:500;opacity:.75}
+  .sol-body{padding:8px 24px 20px}
+  .sol-body ul{margin:0;padding:0;list-style:none}
+  .sol-body li{padding:13px 0 13px 28px;border-bottom:1px solid var(--line);position:relative;font-size:15px}
+  .sol-body li:last-child{border-bottom:0}
+  .sol-body li::before{content:"✓";position:absolute;left:0;top:13px;color:var(--accent);font-weight:800}
+
+  ol.ask{list-style:none;counter-reset:a;padding:0;margin:0;display:grid;gap:10px}
+  ol.ask li{counter-increment:a;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:15px 18px 15px 54px;position:relative;font-size:15px}
+  ol.ask li::before{content:counter(a);position:absolute;left:18px;top:15px;width:23px;height:23px;border-radius:50%;
+    background:var(--licorice);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  ol.ask b{display:block;margin-bottom:2px}
+  ol.ask span{color:var(--muted);font-size:14px}
+
+  footer{padding:26px 0 48px;color:var(--muted);font-size:13.5px}
+  @media (max-width:640px){
+    h1{font-size:26px}
+    .cards{grid-template-columns:1fr}
+    .total-bar{flex-direction:column;align-items:flex-start}
+  }
+  @media print{
+    body{background:#fff}
+    header{padding:0 0 18px}
+    section{padding:20px 0;break-inside:avoid}
+    .solution{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="eyebrow">Ja Tak 2.0 · Coop</span>
+    <h1>AI-driftsomkostninger</h1>
+    <p class="sub">Hvad der har været aftalt, hvad det reelt koster — og ét enkelt forslag til, hvordan vi håndterer det fremadrettet.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>1 · Det har været med fra start</h2>
+    <div class="facsimile">
+      <div class="fac-cap">Fra pitchmaterialet — slide "Faseplan &amp; investering"</div>
+      <div class="total-bar">
+        <div>
+          <div class="total-label">Samlet investering</div>
+          <div class="total-note">3 faser · hver fase er uafhængigt leverbar og testbar</div>
+        </div>
+        <div style="text-align:right">
+          <div class="total-num">450–550 <span>timer</span></div>
+        </div>
+      </div>
+      <div class="ai-cost-note">
+        <div class="ai-cost-icon">🤖</div>
+        <div><strong>AI-driftsomkostning</strong> &nbsp;·&nbsp; AI-funktionerne (tekstgenerator, billedgenerator) har en minimal løbende token-omkostning pr. brug — typisk <strong>under 0,50 kr.</strong> per generering. Indgår ikke i timeestimatet og faktureres separat efter forbrug.</div>
+      </div>
+      <div class="src">Gengivet fra <a href="https://kl920.github.io/Jatak/pitch/">Ja Tak 2.0 — Pitch Deck</a>, placeret direkte under det samlede timeestimat.</div>
+    </div>
+
+    <div class="also">
+      <div><b>23. marts</b> — teknisk afklaring sendt, så jeres IA-ekspert kunne vurdere løsningen: API-baseret AI, betalt API med kontraktlig garanti for at data ikke bruges til modeltræning, og fleksibelt modelvalg.</div>
+      <div><b>Forståelsen hele vejen</b> — udviklingen er dækket af udviklingsbudgettet, det løbende AI-forbrug er en separat driftsomkostning efter faktisk brug.</div>
+    </div>
+    <p class="src" style="margin-top:14px">Vi kan godt se, at posten kunne have fyldt mere i den samlede økonomiske opsummering, hvor udviklingsbudgettet og ME-timerne naturligt har fyldt mest. Det retter vi op på her.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>2 · Hvad koster det reelt</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="num">0,10–0,12 <small>kr.</small></div>
+        <div class="lbl">pr. tekstgenerering</div>
+        <div class="down">↓ Lavere end de 0,50 kr. i pitchen</div>
+      </div>
+      <div class="card">
+        <div class="num">1.350–1.630 <small>kr./md</small></div>
+        <div class="lbl">forventet niveau ved ca. 50 % AI-brug — vores realistiske scenarie</div>
+      </div>
+      <div class="card">
+        <div class="num">2.700–3.260 <small>kr./md</small></div>
+        <div class="lbl">absolut maksimum, hvis alle 325.591 mulige genereringer køres via AI</div>
+      </div>
+    </div>
+    <p style="margin-top:18px" class="tight">Vi har desuden afholdt AI-omkostningen til kategorisering af de <b>1.218.675 “Ja tak”-tilbud</b> på vores regning, så Coop ikke får en opstartsomkostning på den del.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>3 · Vores forslag — én simpel model</h2>
+    <div class="solution">
+      <div class="sol-head">
+        <h3>Fast månedspris for AI-tekstgenerering</h3>
+        <div class="sol-price">1.500 kr. <span>/md</span></div>
+      </div>
+      <div class="sol-body">
+        <ul>
+          <li><b>Ét fast tal i budgettet.</b> Ingen løbende forbrugsafregning, ingen overraskelser, intet at kontrollere måned for måned.</li>
+          <li><b>Dækker op til 12.500 tekstgenereringer pr. måned</b> — svarende til ca. halvdelen af det maksimalt mulige forbrug.</li>
+          <li><b>Loftet er hårdt.</b> Rammes det, kontakter vi jer, før der bruges mere. I bestemmer, om vi udvider eller stopper.</li>
+          <li><b>Billedgenerering er ikke med</b> og aktiveres først, når den er estimeret og godkendt særskilt (foreløbigt 0,30–0,50 kr. pr. billede).</li>
+          <li><b>Evalueres efter 6 måneder</b> mod faktisk forbrug og justeres op eller ned. Ligger forbruget lavere, sætter vi prisen ned.</li>
+        </ul>
+      </div>
+    </div>
+    <p class="src" style="margin-top:14px">Alternativet er ren forbrugsafregning på genereringsniveau. Det er også fint for os — men det kræver løbende rapportering og kontrol hos jer. Den faste pris fjerner det arbejde.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>4 · Det, vi gerne vil have besluttet i dag</h2>
+    <ol class="ask">
+      <li><b>Fast månedspris eller forbrugsafregning?</b><span>Vi anbefaler fast pris — det er enklest for begge parter.</span></li>
+      <li><b>Er loftet på 12.500 genereringer pr. måned det rigtige niveau?</b><span>Kan sættes op eller ned, før vi går i drift.</span></li>
+      <li><b>Har jeres IA-ekspert krav til modelvalg?</b><span>Vi bruger i dag Gemini til tekst frem for GPT-4o — bedre kvalitet pr. krone, inden for den fleksibilitet vi beskrev i marts. Kan ændres.</span></li>
+    </ol>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Kenneth Larsen · CTO/Partner, Quick Info · mobil 22 14 54 56
+  </div>
+</footer>
+
+</body>
+</html>
